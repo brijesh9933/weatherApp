@@ -1,0 +1,35 @@
+<div class="mainDIv">
+
+
+  <div class="container">
+    <div class="weather-side">
+      <div class="weather-gradient"></div>
+      <div class="date-container">
+        <h2 class="date-dayname">{{TodayDate | date:'EEEE'}}</h2><span class="date-day">{{TodayDate | date:'MMM y'}}</span><i class="location-icon" data-feather="map-pin"></i><span class="location">{{cityName}}</span>
+      </div>
+      <div *ngIf="weatherData?.main?.temp" class="weather-container"><i class="weather-icon" data-feather="sun"></i>
+        <h1 class="weather-temp">{{ weatherData?.main?.temp }} °C</h1>
+        <span class="weather-desc">Feels Like -> {{ weatherData?.main?.feels_like }} °C</span>
+      </div>
+    </div>
+    <div class="info-side">
+      <div class="today-info-container">
+        <div class="today-info" *ngIf="weatherData?.main?.temp">
+          <div class="precipitation"> <span class="title">Weather</span><span class="value"> {{ weatherData?.weather[0]?.description }} </span>
+          <div class="humidity"> <span class="title">HUMIDITY</span><span class="value">{{ weatherData?.main?.humidity }} %</span>
+            <div class="clear"></div>
+          </div>
+          <div class="wind"> <span class="title">WIND</span><span class="value">{{ weatherData?.wind?.speed }} km/h</span>
+            <div class="clear"></div>
+          </div>
+        </div>
+      </div>
+    <div class="location-container">
+        <button class="location-button" type="button" (click)="changeLocation()"> <i data-feather="map-pin"></i><span>Change location</span></button>
+      </div>
+      <div>
+        <input type="text" (change)="getWeatherDataByCity()" id="CityName" class="margin-left-34" placeholder="enter city name">
+      </div>
+    </div>
+  </div>
+  </div>
