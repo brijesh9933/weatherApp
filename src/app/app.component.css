@@ -1,279 +1,374 @@
-
-
+/* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700,900&display=swap');
 
 :root {
-	--gradient: linear-gradient( 135deg, #72EDF2 10%, #5151E5 100%);
+  --bg: #0b1220;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --muted2: rgba(255, 255, 255, 0.55);
+  --shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+  --radius: 28px;
+  --radius-sm: 16px;
+  --gradient: linear-gradient(135deg, #72EDF2 10%, #5151E5 100%);
+  --gradient-2: linear-gradient(180deg, rgba(114, 237, 242, 0.30), rgba(81, 81, 229, 0.35));
 }
 
 * {
-	-webkit-box-sizing: border-box;
-	        box-sizing: border-box;
-	line-height: 1.25em;
-}
-
-.clear {
-	clear: both;
+  box-sizing: border-box;
+  line-height: 1.25em;
 }
 
 body {
-	margin: 0;
-	width: 100%;
-	height: 100vh;
-	font-family: 'Montserrat', sans-serif;
-	background-color: #343d4b;
-	display: -webkit-box;
-	display: -ms-flexbox;
-	display: flex;
-	-webkit-box-align: center;
-	    -ms-flex-align: center;
-	        align-items: center;
-	-webkit-box-pack: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+  background: radial-gradient(1200px 800px at 20% 10%, rgba(81, 81, 229, 0.25), transparent 60%),
+    var(--bg);
+  color: var(--text);
 }
 
-.container {
-	border-radius: 25px;
-	-webkit-box-shadow: 0 0 70px -10px rgba(0, 0, 0, 0.2);
-	        box-shadow: 0 0 70px -10px rgba(0, 0, 0, 0.2);
-	background-color: #222831;
-	color: #ffffff;
-	height: 400px;
+tml, body {
+  overflow: hidden;
 }
 
-.weather-side {
-	position: relative;
-	height: 100%;
-	border-radius: 25px;
-	background-image: url("https://images.unsplash.com/photo-1559963110-71b394e7494d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=675&q=80");
-	width: 300px;
-	-webkit-box-shadow: 0 0 20px -10px rgba(0, 0, 0, 0.2);
-	        box-shadow: 0 0 20px -10px rgba(0, 0, 0, 0.2);
-	-webkit-transition: -webkit-transform 300ms ease;
-	transition: -webkit-transform 300ms ease;
-	-o-transition: transform 300ms ease;
-	transition: transform 300ms ease;
-	transition: transform 300ms ease, -webkit-transform 300ms ease;
-	-webkit-transform: translateZ(0) scale(1.02) perspective(1000px);
-	        transform: translateZ(0) scale(1.02) perspective(1000px);
-	float: left;
+.mainDIv {
+  margin: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
-.weather-side:hover {
-	-webkit-transform: scale(1.1) perspective(1500px) rotateY(10deg);
-	        transform: scale(1.1) perspective(1500px) rotateY(10deg);
+.phone-wrap {
+  width: 100%;
+  max-width: 980px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.weather-gradient {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-	background-image:linear-gradient( 135deg, #72EDF2 10%, #5151E5 100%);
-	border-radius: 25px;
-	opacity: 0.8;
+.phone-shell {
+  position: relative;
+  width: min(430px, 92vw);
+  aspect-ratio: 9/16;
+  border-radius: 38px;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: var(--shadow);
 }
-.container{width: 70%;}
 
-.date-container {
-	position: absolute;
-	top: 25px;
-	left: 25px;
+.phone-glass {
+  position: absolute;
+  inset: 12px;
+  border-radius: 32px;
+  overflow: hidden;
+  background: rgba(10, 16, 32, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1200px 600px at 50% -10%, rgba(114, 237, 242, 0.45), transparent 55%),
+    radial-gradient(900px 500px at 10% 10%, rgba(81, 81, 229, 0.35), transparent 60%),
+    url('/assets/phone-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.1) contrast(1.05);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 34px 34px;
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+}
+
+.hero-blur {
+  position: absolute;
+  inset: -40px;
+  background: var(--gradient-2);
+  opacity: 0.75;
+}
+
+.hero-top {
+  position: relative;
+  z-index: 2;
+  padding: 22px 22px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.date-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .date-dayname {
-	margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
 }
 
 .date-day {
-	display: block;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
 }
 
-.location {
-	display: inline-block;
-	margin-top: 10px;
+.city-pill {
+  align-self: flex-start;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.20);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.location-icon {
-	display: inline-block;
-	height: 0.8em;
-	width: auto;
-	margin-right: 5px;
+.pill-icon {
+  width: 1em;
+  height: 1em;
+  opacity: 0.95;
 }
 
-.weather-container {
-	position: absolute;
-	bottom: 25px;
-	left: 25px;
+.city-text {
+  font-weight: 900;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.weather-icon.feather {
-	height: 60px;
-	width: auto;
+.hero-mid {
+  position: relative;
+  z-index: 2;
+  padding: 12px 22px;
+  height: calc(100% - 190px);
+  display: flex;
+  align-items: center;
 }
 
-.weather-temp {
-	margin: 0;
-	font-weight: 700;
-	font-size: 4em;
+.temp-card {
+  width: 100%;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-.weather-desc {
-	margin: 0;
+.temp-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.info-side {
-	position: relative;
-	float: left;
-	height: 100%;
-	padding-top: 25px;
+.weather-icon {
+  width: 38px;
+  height: 38px;
+  color: rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.25));
 }
 
-.today-info {
-	padding: 15px;
-	margin: 0 25px 25px 25px;
-/* 	box-shadow: 0 0 50px -5px rgba(0, 0, 0, 0.25); */
-	border-radius: 10px;
+.temp-value {
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.6px;
 }
 
-.today-info>div:not(:last-child) {
-	margin: 0 0 10px 0;
+.feels-like {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 12px;
+  border-radius: 16px;
 }
 
-.today-info>div .title {
-	float: left;
-	font-weight: 700;
+.weather-summary {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-.today-info>div .value {
-	float: right;
-	margin-left: 10px;
+.summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  min-height: 44px;
 }
 
-.week-list {
-	list-style-type: none;
-	padding: 0;
-	margin: 10px 35px;
-	-webkit-box-shadow: 0 0 50px -5px rgba(0, 0, 0, 0.25);
-	        box-shadow: 0 0 50px -5px rgba(0, 0, 0, 0.25);
-	border-radius: 10px;
-	background: #222831
-}
-.mainDIv{
-    margin: 0;
-	width: 100%;
-	height: 100vh;
-	font-family: 'Montserrat', sans-serif;
-	background-color: #343d4b;
-	display: -webkit-box;
-	display: -ms-flexbox;
-	display: flex;
-	-webkit-box-align: center;
-	    -ms-flex-align: center;
-	        align-items: center;
-	-webkit-box-pack: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
-}
-.week-list>li {
-	float: left;
-	padding: 15px;
-	cursor: pointer;
-	-webkit-transition: 200ms ease;
-	-o-transition: 200ms ease;
-	transition: 200ms ease;
-	border-radius: 10px;
+.summary-item .label {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted2);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
-.week-list>li:hover {
-	-webkit-transform: scale(1.1);
-	    -ms-transform: scale(1.1);
-	        transform: scale(1.1);
-	background: #fff;
-	color: #222831;
-	-webkit-box-shadow: 0 0 40px -5px rgba(0, 0, 0, 0.2);
-	        box-shadow: 0 0 40px -5px rgba(0, 0, 0, 0.2)
+.summary-item .value {
+  font-size: 15px;
+  font-weight: 900;
+  text-align: right;
 }
 
-.week-list>li.active {
-	background: #fff;
-	color: #222831;
-	border-radius: 10px;
-}
-
-.week-list>li .day-name {
-	display: block;
-	margin: 10px 0 0 0;
-	text-align: center;
-}
-
-.week-list>li .day-icon {
-	display: block;
-	height: 30px;
-	width: auto;
-	margin: 0 auto;
-}
-
-.week-list>li .day-temp {
-	display: block;
-	text-align: center;
-	margin: 10px 0 0 0;
-	font-weight: 700;
-}
-
-.location-container {
-	padding: 25px 35px;
+.hero-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  z-index: 3;
+  padding: 0 18px;
 }
 
 .location-button {
-	outline: none;
-	width: 100%;
-	-webkit-box-sizing: border-box;
-	        box-sizing: border-box;
-	border: none;
-	border-radius: 25px;
-	padding: 10px;
-	font-family: 'Montserrat', sans-serif;
-	background-image: linear-gradient( 135deg, #72EDF2 10%, #5151E5 100%);
-	color: #ffffff;
-	font-weight: 700;
-	-webkit-box-shadow: 0 0 30px -5px rgba(0, 0, 0, 0.25);
-	        box-shadow: 0 0 30px -5px rgba(0, 0, 0, 0.25);
-	cursor: pointer;
-	-webkit-transition: -webkit-transform 200ms ease;
-	transition: -webkit-transform 200ms ease;
-	-o-transition: transform 200ms ease;
-	transition: transform 200ms ease;
-	transition: transform 200ms ease, -webkit-transform 200ms ease;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-family: 'Montserrat', sans-serif;
+  background-image: var(--gradient);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  transition: transform 150ms ease, filter 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .location-button:hover {
-	-webkit-transform: scale(0.95);
-	    -ms-transform: scale(0.95);
-	        transform: scale(0.95);
+  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
-.location-button .feather {
-	height: 1em;
-	width: auto;
-	margin-right: 5px;
+.location-button:active {
+  transform: translateY(0px) scale(0.99);
 }
 
-.margin-left-34{
-	margin-left: 34px;
+.location-button i {
+  width: 1.05em;
+  height: 1.05em;
 }
 
+.search-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.city-input {
+  flex: 1;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
+  padding: 12px 14px;
+  outline: none;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.city-input::placeholder {
+  color: rgba(255, 255, 255, 0.60);
+}
+
+.city-input:focus {
+  border-color: rgba(114, 237, 242, 0.65);
+  box-shadow: 0 0 0 4px rgba(114, 237, 242, 0.18);
+}
+
+.search-button {
+  border: none;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background-image: var(--gradient);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  transition: transform 150ms ease, filter 150ms ease;
+}
+
+.search-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.search-button:active {
+  transform: translateY(0px) scale(0.99);
+}
+
+.phone-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
 
 .env-badge {
-	position: fixed;
-	top: 10px;
-	right: 10px;
-	background: orange;
-	color: white;
-	padding: 5px 10px;
-	border-radius: 5px;
-	font-weight: bold;
-	z-index: 9999;
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  background: #ff9f1c;
+  color: white;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-weight: 900;
+  z-index: 9999;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.temp-card.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.empty-title {
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .phone-shell {
+    padding: 8px;
+    border-radius: 34px;
   }
+  .phone-glass {
+    inset: 10px;
+    border-radius: 28px;
+  }
+  .temp-value {
+    font-size: 42px;
+  }
+  .weather-summary {
+    grid-template-columns: 1fr;
+  }
+}
+

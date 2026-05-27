@@ -1,38 +1,106 @@
 <div class="mainDIv">
+  <div class="env-badge">{{ envName }}</div>
 
-  <div class="env-badge">
-    {{ envName }}
-  </div>
+  <div class="phone-wrap" role="application" aria-label="Weather phone UI">
+    <div class="phone-shell">
+      <div class="phone-glass" aria-label="Weather hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-blur"></div>
 
-  <div class="container">
-    <div class="weather-side">
-      <div class="weather-gradient"></div>
-      <div class="date-container">
-        <h2 class="date-dayname">{{TodayDate | date:'EEEE'}}</h2><span class="date-day">{{TodayDate | date:'MMM y'}}</span><i class="location-icon" data-feather="map-pin"></i><span class="location">{{cityName}}</span>
-      </div>
-      <div *ngIf="weatherData?.main?.temp" class="weather-container"><i class="weather-icon" data-feather="sun"></i>
-        <h1 class="weather-temp">{{ weatherData?.main?.temp }} °C</h1>
-        <span class="weather-desc">Feels Like -> {{ weatherData?.main?.feels_like }} °C</span>
-      </div>
-    </div>
-    <div class="info-side">
-      <div class="today-info-container">
-        <div class="today-info" *ngIf="weatherData?.main?.temp">
-          <div class="precipitation"> <span class="title">Weather</span><span class="value"> {{ weatherData?.weather[0]?.description }} </span>
-          <div class="humidity"> <span class="title">HUMIDITY</span><span class="value">{{ weatherData?.main?.humidity }} %</span>
-            <div class="clear"></div>
+        <div class="hero-top">
+          <div class="date-block">
+            <div class="date-dayname">{{ TodayDate | date: 'EEEE' }}</div>
+            <div class="date-day">{{ TodayDate | date: 'MMM y' }}</div>
           </div>
-          <div class="wind"> <span class="title">WIND</span><span class="value">{{ weatherData?.wind?.speed }} km/h</span>
-            <div class="clear"></div>
+
+          <div class="city-pill" *ngIf="cityName">
+            <i class="pill-icon" data-feather="map-pin"></i>
+            <span class="city-text">{{ cityName }}</span>
+          </div>
+        </div>
+
+        <div class="hero-mid">
+          <div class="temp-card" *ngIf="weatherData?.main?.temp">
+            <div class="temp-row">
+              <i class="weather-icon" data-feather="sun"></i>
+              <div class="temp-value">{{ weatherData?.main?.temp }} °C</div>
+            </div>
+
+            <div class="feels-like">
+              Feels Like: <b>{{ weatherData?.main?.feels_like }} °C</b>
+            </div>
+
+            <div class="weather-summary">
+              <div class="summary-item">
+                <span class="label">Condition</span>
+                <span class="value">{{ weatherData?.weather?.[0]?.main }}</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Description</span>
+                <span class="value">{{ weatherData?.weather?.[0]?.description }}</span>
+              </div>
+
+              <div class="summary-item">
+
+                <span class="label">Humidity</span>
+                <span class="value">{{ weatherData?.main?.humidity }} %</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Wind</span>
+                <span class="value">{{ weatherData?.wind?.speed }} km/h</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Pressure</span>
+                <span class="value">{{ weatherData?.main?.pressure }} hPa</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Clouds</span>
+                <span class="value">{{ weatherData?.clouds?.all }} %</span>
+              </div>
+
+              <div class="summary-item">
+                <span class="label">Visibility</span>
+                <span class="value">{{ weatherData?.visibility }} m</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="temp-card empty" *ngIf="!weatherData?.main?.temp">
+            <div class="empty-title">Enter a city to see weather</div>
+          </div>
+        </div>
+
+        <div class="hero-bottom" aria-label="Weather controls">
+          <button class="location-button" type="button" (click)="changeLocation()">
+            <i data-feather="map-pin"></i>
+            <span>Change location</span>
+          </button>
+
+          <div class="search-row">
+            <input
+              type="text"
+              id="CityName"
+              class="city-input"
+              placeholder="Enter city name"
+              (change)="getWeatherDataByCity()"
+              (keyup.enter)="getWeatherDataByCity()"
+            />
+            <button class="search-button" type="button" (click)="getWeatherDataByCity()">
+              Search
+            </button>
           </div>
         </div>
       </div>
-    <div class="location-container">
-        <button class="location-button" type="button" (click)="changeLocation()"> <i data-feather="map-pin"></i><span>Change location</span></button>
-      </div>
-      <div>
-        <input type="text" (change)="getWeatherDataByCity()" id="CityName" class="margin-left-34" placeholder="enter city name">
-      </div>
+
+      <div class="phone-frame" aria-hidden="true"></div>
+
     </div>
+
   </div>
-  </div>
+</div>
+
