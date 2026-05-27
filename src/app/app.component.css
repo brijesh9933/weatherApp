@@ -264,3 +264,16 @@ body {
 .margin-left-34{
 	margin-left: 34px;
 }
+
+
+.env-badge {
+	position: fixed;
+	top: 10px;
+	right: 10px;
+	background: orange;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 5px;
+	font-weight: bold;
+	z-index: 9999;
+  }

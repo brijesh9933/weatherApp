@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonService } from './common.service';
+import { environment } from '../environments/environment';
+
 declare var $:any;
 @Component({
   selector: 'app-root',
@@ -12,6 +14,7 @@ export class AppComponent {
   TodayDate: Date;
   weatherData: any;
   cityName: any;
+  envName = environment.envName;
 
   constructor(private service:CommonService){
     this.TodayDate = new Date();

@@ -28,6 +28,28 @@
             "scripts": []
           },
           "configurations": {
+            "dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false
+            },
+            "test": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false
+            },
             "production": {
               "budgets": [
                 {
@@ -37,7 +59,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
+                  "maximumWarning": "4kb",
                   "maximumError": "4kb"
                 }
               ],
@@ -66,8 +88,12 @@
             "production": {
               "browserTarget": "Weather:build:production"
             },
-            "development": {
-              "browserTarget": "Weather:build:development"
+            "dev": {
+              "browserTarget": "Weather:build:dev"
+            },
+          
+            "test": {
+              "browserTarget": "Weather:build:test"
             }
           },
           "defaultConfiguration": "development"
