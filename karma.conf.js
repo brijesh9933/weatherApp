@@ -29,8 +29,19 @@ module.exports = function (config) {
       subdir: '.',
       reporters: [
         { type: 'html' },
-        { type: 'text-summary' }
-      ]
+        { type: 'text-summary' },
+        { type: 'lcov' }
+      ],
+      // Ensure LCOV only includes files under src/**
+      includeAllSources: false,
+      check: {
+        // no-op, keeps defaults
+      },
+      // Istanbul/karma-coverage supports glob-like include/exclude for reported files
+      // (passed through to the underlying coverage provider)
+      // We keep it broad to match how Angular outputs source paths.
+      include: ['**/src/**'],
+      exclude: ['**/node_modules/**', '**/coverage/**']
     },
     reporters: ['progress', 'kjhtml'],
     port: 9876,

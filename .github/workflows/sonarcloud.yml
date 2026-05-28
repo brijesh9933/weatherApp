@@ -26,7 +26,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          npm test -- --watch=false --browsers=ChromeHeadless --code-coverage --sourceMap=true
+          npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
           echo "Checking LCOV output..."
           if [ ! -f coverage/weather/lcov.info ]; then
@@ -36,7 +36,6 @@ jobs:
           fi
         env:
           CI: true
-
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
@@ -48,6 +47,7 @@ jobs:
             -Dsonar.projectBaseDir=.
             -Dsonar.sources=src
             -Dsonar.tests=src
+            -Dsonar.coverage.exclusions=**/node_modules/**
             -Dsonar.inclusions=src/**
             -Dsonar.javascript.lcov.reportPaths=coverage/weather/lcov.info
             -Dsonar.coverage.exclusions=**/node_modules/**
