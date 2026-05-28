@@ -50,6 +50,7 @@ jobs:
             -Dsonar.projectKey=brijesh9933_weatherApp
             -Dsonar.sources=src
             -Dsonar.tests=src
+            -Dsonar.test.inclusions=src/**/*.spec.ts
             -Dsonar.coverage.exclusions=**/node_modules/**
             -Dsonar.inclusions=src/**
             -Dsonar.javascript.lcov.reportPaths=coverage/weather/lcov.info
