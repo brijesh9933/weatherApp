@@ -45,6 +45,8 @@ jobs:
         with:
           args: >-
             -Dsonar.projectBaseDir=.
+            -Dsonar.organization=brijesh9933
+            -Dsonar.projectKey=brijesh9933_weatherApp
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.coverage.exclusions=**/node_modules/**
