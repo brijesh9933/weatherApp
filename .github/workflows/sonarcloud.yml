@@ -3,9 +3,9 @@ name: SonarCloud
 on:
   push:
     branches:
-      - dev
-      - main
+      - '**'
   pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   sonar:
@@ -26,9 +26,17 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
+          npm test -- --watch=false --browsers=ChromeHeadless --code-coverage --sourceMap=true
+
+          echo "Checking LCOV output..."
+          if [ ! -f coverage/weather/lcov.info ]; then
+            echo "ERROR: coverage/weather/lcov.info not found. Listing coverage dir:";
+            ls -R coverage || true;
+            exit 1;
+          fi
         env:
           CI: true
+
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
