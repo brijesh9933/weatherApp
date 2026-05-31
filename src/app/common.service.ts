@@ -8,12 +8,12 @@ import { environment } from 'src/environments/environment';
 })
 export class CommonService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private _http: HttpClient) { }
 
   getWeatherData(city: string): Observable<any> {
     console.log("city", city);
     const units = 'metric';
-    return this.http.get(
+    return this._http.get(
       `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=${units}`
     );
   }

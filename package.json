@@ -11,18 +11,20 @@
     "build:test": "ng build --configuration test",
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
+    "lint:check": "node ./node_modules/eslint/bin/eslint.js ."
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^21.2.15",
-    "@angular/common": "^21.2.15",
-    "@angular/compiler": "^21.2.15",
-    "@angular/core": "^21.2.15",
-    "@angular/forms": "^21.2.15",
-    "@angular/platform-browser": "^21.2.15",
-    "@angular/platform-browser-dynamic": "^21.2.15",
-    "@angular/router": "^21.2.15",
+    "@angular/animations": "^14.2.0",
+    "@angular/common": "^14.2.0",
+    "@angular/compiler": "^14.2.0",
+    "@angular/core": "^14.2.0",
+    "@angular/forms": "^14.2.0",
+    "@angular/platform-browser": "^14.2.0",
+    "@angular/platform-browser-dynamic": "^14.2.0",
+    "@angular/router": "^14.2.0",
     "http-client": "^4.3.1",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
@@ -31,7 +33,7 @@
   "devDependencies": {
     "@angular-devkit/build-angular": "^14.2.11",
     "@angular/cli": "~14.2.11",
-    "@angular/compiler-cli": "^21.2.15",
+    "@angular/compiler-cli": "^14.2.0",
     "@types/jasmine": "~4.0.0",
     "jasmine-core": "~4.3.0",
     "karma": "~6.4.0",
@@ -39,6 +41,18 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
-    "typescript": "~4.7.2"
+    "typescript": "~4.7.2",
+
+    "eslint": "^8.57.0",
+    "@eslint/js": "^8.57.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-promise": "^6.1.1",
+
+    "@angular-eslint/eslint-plugin": "^14.0.0",
+    "@angular-eslint/eslint-plugin-template": "^14.0.0",
+    "@angular-eslint/template-parser": "^14.0.0"
   }
 }
+
