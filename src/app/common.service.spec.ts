@@ -43,5 +43,18 @@ describe('CommonService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
   });
+
+  it('should fetch weather data for a city', () => {
+    const city = 'London';
+    const mockResponse = { weather: 'sunny' };
+    const expectedUrl = `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=metric`;
+    service.getWeatherData(city).subscribe(data => {
+      expect(data).toEqual(mockResponse);
+    });
+    const req = httpMock.expectOne(expectedUrl);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
+  });
+
 });
 
