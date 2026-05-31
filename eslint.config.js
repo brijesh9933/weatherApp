@@ -13,7 +13,8 @@ module.exports = [
       'eslint.config.js',
       'karma.conf.js',
       'src/index.html',
-      'src/**/*.html'
+      'src/**/*.html',
+      'scripts/coverage-check.js'
     ]
   },
   js.configs.recommended,
@@ -27,7 +28,7 @@ module.exports = [
       '@angular-eslint': angularPlugin
     },
     rules: {
-      'no-console': 'off',
+      'no-console': 'error',
       '@typescript-eslint/no-explicit-any': 'off',
       'no-unused-vars': 'off',
       // Jasmine globals live in test env; we ignore specs but keep rule safe.
@@ -42,6 +43,7 @@ module.exports = [
     rules: {}
   }
 ];
+
 
 
 

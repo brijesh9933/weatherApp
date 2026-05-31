@@ -117,6 +117,7 @@ export class AppComponent {
     return this.toTimeFromUnixSeconds(this.weatherData?.sys?.sunset);
   }
 
+
   private applyDerivedUIState() {
     const temp = this.weatherData?.main?.temp;
 
