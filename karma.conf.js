@@ -39,9 +39,19 @@ module.exports = function (config) {
       },
       // Istanbul/karma-coverage supports glob-like include/exclude for reported files
       // (passed through to the underlying coverage provider)
-      // We keep it broad to match how Angular outputs source paths.
       include: ['**/src/**'],
-      exclude: ['**/node_modules/**', '**/coverage/**']
+      // Exclude low-value files from coverage calculation
+      exclude: [
+        '**/node_modules/**',
+        '**/coverage/**',
+        '**/src/app/app-routing.module.ts',
+        '**/src/environments/environment.dev.ts',
+        '**/src/environments/environment.prod.ts',
+        '**/src/environments/environment.test.ts',
+        '**/src/main.ts',
+        '**/src/test.ts'
+      ]
+
     },
     reporters: ['progress', 'kjhtml'],
     port: 9876,
@@ -53,3 +63,4 @@ module.exports = function (config) {
     restartOnFileChange: true
   });
 };
+
