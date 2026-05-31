@@ -13,7 +13,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "node ./node_modules/eslint/bin/eslint.js .",
-    "lint:check": "node ./node_modules/eslint/bin/eslint.js ."
+    "lint:check": "node ./node_modules/eslint/bin/eslint.js .",
+    "coverage:check": "node scripts/coverage-check.js"
   },
   "private": true,
   "dependencies": {
