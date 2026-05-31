@@ -28,12 +28,19 @@ describe('AppComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('changeLocation should toggle IsChangeLocation', () => {
-    const initial = component.IsChangeLocation;
+  it('changeLocation should open developer profile in a new tab', () => {
+    const openSpy = spyOn(window, 'open');
+
     component.changeLocation();
-    expect(component.IsChangeLocation).toBe(initial ? false : true);
-    component.changeLocation();
-    expect(component.IsChangeLocation).toBe(initial);
+
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://brijesh9933.github.io/myPortfolio-dynamicDesign/',
+      '_blank',
+      'noopener,noreferrer'
+    );
+
+    // changeLocation currently does not toggle IsChangeLocation
+    expect(component.IsChangeLocation).toBe(false);
   });
 
   it('transform should round values', () => {
