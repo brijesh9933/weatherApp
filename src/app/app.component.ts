@@ -38,8 +38,13 @@ export class AppComponent {
   }
 
   changeLocation() {
-    this.IsChangeLocation = this.IsChangeLocation == true ? false : true;
+    const url = 'https://brijesh9933.github.io/myPortfolio-dynamicDesign/';
+
+    // Open in a new tab/window
+    // Always open a new tab (no same-tab fallback to avoid navigating away)
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
+
 
   getWeatherDataByCity() {
     const city = ($("#CityName").val() || '').toString().trim();
