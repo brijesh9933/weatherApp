@@ -86,14 +86,14 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "Weather:build:production"
+              "buildTarget": "Weather:build:production"
             },
             "dev": {
-              "browserTarget": "Weather:build:dev"
+              "buildTarget": "Weather:build:dev"
             },
           
             "test": {
-              "browserTarget": "Weather:build:test"
+              "buildTarget": "Weather:build:test"
             }
           },
           "defaultConfiguration": "development"
@@ -101,7 +101,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "Weather:build"
+            "buildTarget": "Weather:build"
           }
         },
         "test": {
@@ -126,5 +126,31 @@
   },
   "cli": {
     "analytics": "5f6c0af6-a3fb-4a7e-b1b7-5be93f0e4ff0"
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
   }
 }
