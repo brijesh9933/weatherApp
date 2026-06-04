@@ -28,6 +28,7 @@ export class ApplicationInsightsService {
 
   trackPageView(name?: string, uri?: string, properties?: Record<string, unknown>): void {
     this.appInsights?.trackPageView({ name, uri, properties } as IPageViewTelemetry);
+    this.flush();
   }
 
   logEvent(name: string, properties?: Record<string, unknown>): void {
@@ -36,6 +37,7 @@ export class ApplicationInsightsService {
 
   trackEvent(name: string, properties?: Record<string, unknown>): void {
     this.appInsights?.trackEvent({ name, properties } as IEventTelemetry);
+    this.flush();
   }
 
   logException(exception: unknown, properties?: Record<string, unknown>): void {
@@ -48,10 +50,12 @@ export class ApplicationInsightsService {
       : new Error(String(exception));
 
     this.appInsights?.trackException({ exception: trackedException, properties } as IExceptionTelemetry);
+    this.flush();
   }
 
   logMetric(name: string, average: number, properties?: Record<string, unknown>): void {
     this.appInsights?.trackMetric({ name, average, properties } as IMetricTelemetry);
+    this.flush();
   }
 
   initializeRouteTracking(router: Router): void {
@@ -82,6 +86,10 @@ export class ApplicationInsightsService {
 
   clearAuthenticatedUserContext(): void {
     this.appInsights?.clearAuthenticatedUserContext();
+  }
+
+  flush(): void {
+    this.appInsights?.flush();
   }
 
   private initialize(): void {

@@ -8,5 +8,7 @@ export const environment = {
 
   enableAppInsights: true,
 
-  appInsightsInstrumentationKey: '2593fedf-5670-4a4e-8868-0f7289f5a5ce'
+  appInsightsConnectionString: 'InstrumentationKey=0cba2b27-3d9a-462f-9038-801c35814065',
+
+  appInsightsInstrumentationKey: '0cba2b27-3d9a-462f-9038-801c35814065'
 };
