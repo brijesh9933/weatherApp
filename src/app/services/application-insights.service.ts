@@ -16,6 +16,7 @@ type ApplicationInsightsEnvironment = typeof environment & {
 export class ApplicationInsightsService {
   private appInsights?: ApplicationInsights;
   private routeTrackingSubscription?: Subscription;
+  private readonly userIdStorageKey = 'weatherAppUserId';
 
   constructor() {
     this.initialize();
@@ -67,6 +68,14 @@ export class ApplicationInsightsService {
       });
   }
 
+  initializeUserContext(): string {
+    const userId = this.getOrCreateUserId();
+
+    this.setAuthenticatedUserContext(userId);
+
+    return userId;
+  }
+
   setAuthenticatedUserContext(userId: string): void {
     this.appInsights?.setAuthenticatedUserContext(userId);
   }
@@ -98,5 +107,30 @@ export class ApplicationInsightsService {
     });
 
     this.appInsights.loadAppInsights();
+  }
+
+  private getOrCreateUserId(): string {
+    if (typeof localStorage === 'undefined') {
+      return this.createUserId();
+    }
+
+    const existingUserId = localStorage.getItem(this.userIdStorageKey);
+
+    if (existingUserId) {
+      return existingUserId;
+    }
+
+    const userId = this.createUserId();
+    localStorage.setItem(this.userIdStorageKey, userId);
+
+    return userId;
+  }
+
+  private createUserId(): string {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return `weather-user-${crypto.randomUUID()}`;
+    }
+
+    return `weather-user-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 }

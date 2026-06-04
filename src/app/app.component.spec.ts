@@ -15,7 +15,8 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     commonServiceSpy = jasmine.createSpyObj('CommonService', ['getWeatherData']);
-    applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', ['initializeRouteTracking', 'trackEvent']);
+    applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', ['initializeUserContext', 'initializeRouteTracking', 'trackEvent']);
+    applicationInsightsServiceSpy.initializeUserContext.and.returnValue('weather-user-test');
 
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
@@ -142,7 +143,9 @@ describe('AppComponent', () => {
     component.getWeatherDataByCity();
 
     expect(applicationInsightsServiceSpy.trackEvent).toHaveBeenCalledWith('WeatherSearch', {
-      city: 'London'
+      city: 'London',
+      userId: 'weather-user-test',
+      environment: component.envName
     });
     expect(commonServiceSpy.getWeatherData).toHaveBeenCalledWith('London');
 

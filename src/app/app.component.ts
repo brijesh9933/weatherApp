@@ -32,6 +32,7 @@ export class AppComponent {
   statusText = 'Safe';
   statusClass = 'safe';
   progressPercent = 0;
+  telemetryUserId = '';
 
   recentSearches: RecentSearch[] = [];
 
@@ -42,6 +43,7 @@ export class AppComponent {
   ) {
     this.TodayDate = new Date();
     this.week = this.buildWeek(22); // initial placeholder
+    this.telemetryUserId = this.applicationInsightsService.initializeUserContext();
     this.applicationInsightsService.initializeRouteTracking(this.router);
   }
 
@@ -58,7 +60,11 @@ export class AppComponent {
     const city = ($("#CityName").val() || '').toString().trim();
     if (!city) return;
 
-    this.applicationInsightsService.trackEvent('WeatherSearch', { city });
+    this.applicationInsightsService.trackEvent('WeatherSearch', {
+      city,
+      userId: this.telemetryUserId,
+      environment: this.envName
+    });
 
     this.service.getWeatherData(city).subscribe((data) => {
       this.cityName = city;
