@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonService } from './common.service';
+import { ApplicationInsightsService } from './services/application-insights.service';
 import { environment } from '../environments/environment';
 
 declare var $: any;
@@ -33,9 +35,14 @@ export class AppComponent {
 
   recentSearches: RecentSearch[] = [];
 
-  constructor(private service: CommonService) {
+  constructor(
+    private service: CommonService,
+    private router: Router,
+    private applicationInsightsService: ApplicationInsightsService
+  ) {
     this.TodayDate = new Date();
     this.week = this.buildWeek(22); // initial placeholder
+    this.applicationInsightsService.initializeRouteTracking(this.router);
   }
 
   changeLocation() {
@@ -50,6 +57,8 @@ export class AppComponent {
   getWeatherDataByCity() {
     const city = ($("#CityName").val() || '').toString().trim();
     if (!city) return;
+
+    this.applicationInsightsService.trackEvent('WeatherSearch', { city });
 
     this.service.getWeatherData(city).subscribe((data) => {
       this.cityName = city;

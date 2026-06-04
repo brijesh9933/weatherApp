@@ -1,21 +1,29 @@
 /// <reference types="jasmine" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { AppComponent } from './app.component';
 import { CommonService } from './common.service';
+import { ApplicationInsightsService } from './services/application-insights.service';
 
 describe('AppComponent', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
   let commonServiceSpy: jasmine.SpyObj<CommonService>;
+  let applicationInsightsServiceSpy: jasmine.SpyObj<ApplicationInsightsService>;
 
   beforeEach(async () => {
     commonServiceSpy = jasmine.createSpyObj('CommonService', ['getWeatherData']);
+    applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', ['initializeRouteTracking', 'trackEvent']);
 
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
-      providers: [{ provide: CommonService, useValue: commonServiceSpy }]
+      providers: [
+        provideRouter([]),
+        { provide: CommonService, useValue: commonServiceSpy },
+        { provide: ApplicationInsightsService, useValue: applicationInsightsServiceSpy }
+      ]
     }).compileComponents();
   });
 
@@ -27,6 +35,10 @@ describe('AppComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should initialize Application Insights route tracking on startup', () => {
+    expect(applicationInsightsServiceSpy.initializeRouteTracking).toHaveBeenCalled();
   });
 
   it('changeLocation should open developer profile in a new tab', () => {
@@ -129,6 +141,9 @@ describe('AppComponent', () => {
 
     component.getWeatherDataByCity();
 
+    expect(applicationInsightsServiceSpy.trackEvent).toHaveBeenCalledWith('WeatherSearch', {
+      city: 'London'
+    });
     expect(commonServiceSpy.getWeatherData).toHaveBeenCalledWith('London');
 
     // recentSearches should contain latest on top and be rounded

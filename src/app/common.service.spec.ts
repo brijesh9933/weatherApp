@@ -4,15 +4,24 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { CommonService } from './common.service';
 import { environment } from 'src/environments/environment';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ApplicationInsightsService } from './services/application-insights.service';
 
 describe('CommonService', () => {
   let service: CommonService;
   let httpMock: HttpTestingController;
+  let applicationInsightsServiceSpy: jasmine.SpyObj<ApplicationInsightsService>;
 
   beforeEach(() => {
+    applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', ['trackException']);
+
     TestBed.configureTestingModule({
     imports: [],
-    providers: [CommonService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [
+      CommonService,
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting(),
+      { provide: ApplicationInsightsService, useValue: applicationInsightsServiceSpy }
+    ]
 });
 
     service = TestBed.inject(CommonService);
@@ -55,6 +64,29 @@ describe('CommonService', () => {
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
+  });
+
+  it('getWeatherData should track API failures', (done) => {
+    const city = 'London';
+    const expectedUrl = `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=metric`;
+
+    service.getWeatherData(city).subscribe({
+      next: () => fail('expected request to fail'),
+      error: (error) => {
+        expect(error.status).toBe(500);
+        expect(applicationInsightsServiceSpy.trackException).toHaveBeenCalledWith(
+          error,
+          {
+            city,
+            operation: 'getWeatherData'
+          }
+        );
+        done();
+      }
+    });
+
+    const req = httpMock.expectOne(expectedUrl);
+    req.flush('server error', { status: 500, statusText: 'Server Error' });
   });
 
 });
