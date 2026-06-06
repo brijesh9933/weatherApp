@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -17,7 +18,8 @@ const routes: Routes = [
   },
   {
     path: 'profile',
-    loadChildren: () => import('./pages/profile/profile.module').then((m) => m.ProfileModule)
+    loadChildren: () => import('./pages/profile/profile.module').then((m) => m.ProfileModule),
+    canActivate: [authGuard]
   },
   {
     path: 'admin',

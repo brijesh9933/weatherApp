@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApplicationInsightsService } from './services/application-insights.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
     selector: 'app-root',
@@ -13,9 +14,18 @@ export class AppComponent {
 
   constructor(
     private router: Router,
-    private applicationInsightsService: ApplicationInsightsService
+    private applicationInsightsService: ApplicationInsightsService,
+    public authService: AuthService
   ) {
     this.applicationInsightsService.initializeUserContext();
     this.applicationInsightsService.initializeRouteTracking(this.router);
+  }
+
+  login() {
+    this.authService.login();
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }
