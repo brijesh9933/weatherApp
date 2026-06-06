@@ -1,0 +1,108 @@
+<div class="weather-dashboard">
+  <div class="header">
+    <h2>WeatherWise</h2>
+    <button class="download-btn" type="button" (click)="changeLocation()">View Developer Profile</button>
+  </div>
+
+  <div class="controls">
+    <input
+      type="text"
+      id="CityName"
+      class="city-input"
+      placeholder="Enter city name (e.g., Kharagpur)"
+      (keyup.enter)="getWeatherDataByCity()"
+    />
+    <button class="search-button" type="button" (click)="getWeatherDataByCity()">Search</button>
+  </div>
+
+  <div class="main-weather">
+    <div class="main-col main-col-left">
+      <div class="location-date">
+        <h3>{{ cityName ? cityName : 'Brooklyn, New York, USA' }}</h3>
+        <p>{{ TodayDate | date:'EEEE' }}, {{ TodayDate | date:'MMMM d' }}</p>
+      </div>
+    </div>
+
+    <div class="main-col main-col-center">
+      @if (weatherData?.main?.temp) {
+        <div class="temperature" [ngStyle]="{ 'background-image': getBackgroundImageUrl() }">
+          <div class="mid-row">
+            <div class="mid-col mid-col-left">
+              <p class="mid-text">
+                High: {{ weatherData.main.temp_max | number:'1.0-0' }}&deg;C
+                <br />
+                Low: {{ weatherData.main.temp_min | number:'1.0-0' }}&deg;C
+              </p>
+            </div>
+            <div class="mid-col mid-col-center">
+              <h1 class="mid-temp">{{ weatherData.main.temp | number:'1.0-0' }}&deg;C</h1>
+            </div>
+            <div class="mid-col mid-col-right">
+              <span class="condition">
+                {{ weatherData.weather?.[0]?.main }} with {{ weatherData.weather?.[0]?.description }}
+              </span>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="temperature">
+          <h1>--&deg;C</h1>
+          <p>High: --&deg;C | Low: --&deg;C</p>
+          <span class="condition">Search a city to see weather</span>
+        </div>
+      }
+    </div>
+
+    <div class="main-col main-col-right">
+      @if (weatherData?.main) {
+        <div class="extra-details">
+          <p>Feels Like: <b>{{ weatherData.main.feels_like | number:'1.0-0' }}&deg;C</b></p>
+          <p>Humidity: <b>{{ weatherData.main.humidity }}%</b></p>
+          <p>Sunrise: <b>{{ getSunriseTime() }}</b></p>
+          <p>Sunset: <b>{{ getSunsetTime() }}</b></p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="status">
+    <p>Status: <span [ngClass]="statusClass">{{ statusText }}</span></p>
+    <div class="progress-bar">
+      <div class="progress" [style.width.%]="progressPercent"></div>
+    </div>
+  </div>
+
+  <div class="weekly-forecast">
+    @for (day of week; track day) {
+      <div class="day">
+        <p>{{ day.name }}</p>
+        <span>{{ day.temp }}&deg;C</span>
+      </div>
+    }
+  </div>
+
+  <div class="recent-searches">
+    <h4>Recently Searched</h4>
+
+    @if (recentSearches.length) {
+      <div>
+        @for (r of recentSearches; track r) {
+          <div class="search-item">
+            <p>{{ r.city }}</p>
+            <span>
+              {{ r.temp }}&deg;C, {{ r.description }}
+              (Feels: {{ r.feelsLike }}&deg;C, Humidity: {{ r.humidity }}%)
+            </span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="search-item">
+        <p>-</p>
+        <span>Search a city</span>
+      </div>
+    }
+  </div>
+
+  <div class="env-badge">{{ envName }}</div>
+</div>
