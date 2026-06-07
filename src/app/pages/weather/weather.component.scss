@@ -1,5 +1,7 @@
+@use 'styles/mixins' as mixins;
+
 .weather-dashboard {
-  font-family: Arial, sans-serif;
+  @include mixins.global-font;
   color: #fff;
   background: linear-gradient(to bottom, #2c3e50, #34495e);
   padding: 20px;

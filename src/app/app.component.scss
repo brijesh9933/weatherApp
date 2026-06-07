@@ -1,8 +1,10 @@
+@use 'styles/mixins' as mixins;
+
 .app-shell {
   min-height: 100vh;
   background: #eef3f7;
-  color: #17212b;
-  font-family: Arial, sans-serif;
+  color: mixins.$color-dark;
+  @include mixins.global-font;
 }
 
 .navbar {
@@ -14,12 +16,29 @@
   background: #1f2d3a;
 }
 
-.navbar a {
+.nav-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.navbar a,
+.navbar button {
   color: #dce7ef;
   padding: 8px 12px;
   border-radius: 6px;
   text-decoration: none;
   font-weight: 700;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+}
+
+.navbar button:hover,
+.navbar a:hover,
+.navbar a.active {
+  background: #3498db;
+  color: #fff;
 }
 
 .navbar a:hover,

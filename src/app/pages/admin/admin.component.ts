@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-admin',
   standalone: false,
   templateUrl: './admin.component.html',
-  styleUrls: ['./admin.component.css']
+  styleUrls: ['./admin.component.scss']
 })
 export class AdminComponent { }

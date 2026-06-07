@@ -1,0 +1,56 @@
+$font-family: Arial, sans-serif;
+$color-light: #dce7ef;
+$color-dark: #17212b;
+$color-white: #ffffff;
+$color-bg: #1f2d3a;
+$color-primary: #3498db;
+$color-orange: #e67e22;
+$color-danger: #e74c3c;
+$color-safe: #2ecc71;
+$card-bg: #ffffff;
+$card-shadow: 0 8px 28px rgba(23, 33, 43, 0.08);
+
+@function px($pixels) {
+  @return #{$pixels / 16}rem;
+}
+
+@function alpha($color, $opacity) {
+  @return rgba(red($color), green($color), blue($color), $opacity);
+}
+
+@mixin global-font {
+  font-family: $font-family;
+}
+
+@mixin card-panel {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: px(24);
+  background: $card-bg;
+  border-radius: px(8);
+  box-shadow: $card-shadow;
+}
+
+@mixin button-style($background, $color: $color-white, $radius: px(6), $padding-y: px(8), $padding-x: px(14)) {
+  background: $background;
+  border: none;
+  color: $color;
+  padding: $padding-y $padding-x;
+  border-radius: $radius;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@mixin button-outline($color: $color-light) {
+  background: transparent;
+  border: 1px solid alpha($color, 0.45);
+  color: $color;
+}
+
+@mixin hover-primary {
+  &:hover,
+  &.active {
+    background: $color-primary;
+    color: $color-white;
+  }
+}

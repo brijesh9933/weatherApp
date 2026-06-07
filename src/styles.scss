@@ -1,1 +1,7 @@
+@use 'styles/mixins' as mixins;
+
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  @include mixins.global-font;
+}

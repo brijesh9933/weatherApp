@@ -17,7 +17,7 @@ type RecentSearch = {
   selector: 'app-weather',
   standalone: false,
   templateUrl: './weather.component.html',
-  styleUrls: ['./weather.component.css']
+  styleUrls: ['./weather.component.scss']
 })
 export class WeatherComponent {
   IsChangeLocation = false;

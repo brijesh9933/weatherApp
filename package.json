@@ -45,6 +45,7 @@
     "@typescript-eslint/parser": "^8.60.1",
     "chokidar": "^5.0.0",
     "eslint": "^9.39.4",
+    "sass": "^1.79.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-promise": "^6.1.1",
     "jasmine-core": "~4.3.0",

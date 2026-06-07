@@ -5,13 +5,15 @@
     <a routerLink="/favorites" routerLinkActive="active">Favorites</a>
     <a routerLink="/profile" routerLinkActive="active">Profile</a>
 
-    <button *ngIf="!authService.isLoggedIn" (click)="login()">
-      Login
-    </button>
+    <div class="nav-actions">
+      <button *ngIf="!authService.isLoggedIn" (click)="login()">
+        Login
+      </button>
 
-    <button *ngIf="authService.isLoggedIn" (click)="logout()">
-      Logout
-    </button>
+      <button *ngIf="authService.isLoggedIn" (click)="logout()">
+        Logout
+      </button>
+    </div>
   </nav>
 
   <main class="page-content">

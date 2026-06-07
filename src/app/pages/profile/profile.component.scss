@@ -1,0 +1,13 @@
+@use 'styles/mixins' as mixins;
+
+.page-panel {
+  @include mixins.card-panel;
+}
+
+.page-panel h1 {
+  margin: 0 0 8px;
+}
+
+.page-panel p {
+  margin: 0;
+}
