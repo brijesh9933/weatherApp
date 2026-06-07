@@ -1,9 +1,15 @@
 <div class="app-shell">
   <nav class="navbar" aria-label="Primary navigation">
-    <a routerLink="/home" routerLinkActive="active">Home</a>
-    <a routerLink="/weather" routerLinkActive="active">Weather</a>
-    <a routerLink="/favorites" routerLinkActive="active">Favorites</a>
-    <a routerLink="/profile" routerLinkActive="active">Profile</a>
+    <ng-container *ngFor="let item of navItems">
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [class.disabled]="isDisabled(item)"
+        [attr.aria-disabled]="isDisabled(item)"
+        (click)="onNavClick($event, item)">
+        {{ item.label }}
+      </a>
+    </ng-container>
 
     <div class="nav-actions">
       <button *ngIf="!authService.isLoggedIn" (click)="login()">

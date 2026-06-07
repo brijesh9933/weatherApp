@@ -12,6 +12,25 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
   title = 'Weather';
 
+  navItems = [
+    { label: 'Home', path: '/home' },
+    { label: 'Weather', path: '/weather' },
+    { label: 'Favorites', path: '/favorites' },
+    { label: 'Profile', path: '/profile', requiresAuth: true },
+    { label: 'Admin', path: '/admin' }
+  ];
+
+  isDisabled(item: { requiresAuth?: boolean }) {
+    return !!item.requiresAuth && !this.authService.isLoggedIn;
+  }
+
+  onNavClick(event: MouseEvent, item: { requiresAuth?: boolean }) {
+    if (this.isDisabled(item)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
   constructor(
     private router: Router,
     private applicationInsightsService: ApplicationInsightsService,

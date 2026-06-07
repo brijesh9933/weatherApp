@@ -45,6 +45,12 @@
   background: mixins.$color-primary;
   color: mixins.$color-white;
 }
+.navbar a.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.08);
+}
 
 .page-content {
   padding: 16px;
