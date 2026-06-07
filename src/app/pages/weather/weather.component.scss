@@ -13,19 +13,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .download-btn {
-  background: #e67e22;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
+  @include mixins.button-style(mixins.$color-orange);
 }
 
 .controls {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   margin: 10px 0 20px;
 }
@@ -38,52 +35,41 @@
   color: #fff;
   padding: 10px 12px;
   outline: none;
-  font-family: Arial, sans-serif;
 }
 
 .search-button {
-  background: #3498db;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  color: #fff;
-  cursor: pointer;
-  font-weight: 700;
+  @include mixins.button-style(mixins.$color-primary);
 }
 
 .main-weather {
   display: flex;
+  flex-direction: column;
   width: 100%;
-  align-items: flex-start;
+  align-items: center;
   margin: 20px 0;
-  gap: 12px;
+  gap: 16px;
   text-align: center;
 }
 
 .main-col {
   min-width: 0;
   text-align: center;
+  width: 100%;
 }
 
-.main-col-left {
-  width: 25%;
-}
-
-.main-col-center {
-  width: 50%;
-}
-
+.main-col-left,
+.main-col-center,
 .main-col-right {
-  width: 25%;
+  width: 100%;
 }
 
 .location-date h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.2rem;
 }
 
 .temperature h1 {
-  font-size: 64px;
+  font-size: 3.5rem;
   margin: 0;
 }
 
@@ -137,7 +123,7 @@
 
 .weekly-forecast {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   margin: 20px 0;
   flex-wrap: wrap;
   gap: 12px;
@@ -165,8 +151,9 @@
 
 .search-item {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   padding: 8px 0;
 }
 
@@ -181,4 +168,73 @@
   font-weight: 900;
   z-index: 9999;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+@include mixins.respond(tablet) {
+  .weather-dashboard {
+    padding: 24px;
+  }
+
+  .controls {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .search-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .main-weather {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .main-col-left,
+  .main-col-center,
+  .main-col-right {
+    width: auto;
+  }
+
+  .main-col-left,
+  .main-col-right {
+    width: 25%;
+  }
+
+  .main-col-center {
+    width: 50%;
+  }
+
+  .temperature h1 {
+    font-size: 4.5rem;
+  }
+}
+
+@include mixins.respond(laptop) {
+  .weather-dashboard {
+    padding: 32px;
+  }
+
+  .main-weather {
+    gap: 24px;
+  }
+
+  .location-date h3 {
+    font-size: 1.35rem;
+  }
+
+  .temperature h1 {
+    font-size: 5.5rem;
+  }
+}
+
+@include mixins.respond(desktop) {
+  .weather-dashboard {
+    padding: 36px;
+  }
+
+  .main-weather {
+    gap: 32px;
+  }
 }

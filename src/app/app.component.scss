@@ -10,43 +10,78 @@
 .navbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  padding: 14px 20px;
-  background: #1f2d3a;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: mixins.$color-bg;
 }
 
 .nav-actions {
   margin-left: auto;
   display: flex;
   gap: 6px;
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .navbar a,
 .navbar button {
-  color: #dce7ef;
-  padding: 8px 12px;
+  color: mixins.$color-light;
+  padding: 10px 14px;
   border-radius: 6px;
   text-decoration: none;
   font-weight: 700;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.12);
   cursor: pointer;
+  width: 100%;
+  text-align: center;
 }
 
 .navbar button:hover,
 .navbar a:hover,
 .navbar a.active {
-  background: #3498db;
-  color: #fff;
-}
-
-.navbar a:hover,
-.navbar a.active {
-  background: #3498db;
-  color: #fff;
+  background: mixins.$color-primary;
+  color: mixins.$color-white;
 }
 
 .page-content {
-  padding: 20px;
+  padding: 16px;
+}
+
+@include mixins.respond(tablet) {
+  .navbar {
+    padding: 18px 24px;
+  }
+
+  .nav-actions {
+    width: auto;
+  }
+
+  .navbar a,
+  .navbar button {
+    width: auto;
+    text-align: left;
+  }
+
+  .page-content {
+    padding: 20px;
+  }
+}
+
+@include mixins.respond(laptop) {
+  .navbar {
+    padding: 20px 40px;
+  }
+
+  .page-content {
+    padding: 24px;
+  }
+}
+
+@include mixins.respond(desktop) {
+  .navbar {
+    padding: 24px 60px;
+  }
 }

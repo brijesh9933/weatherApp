@@ -10,6 +10,13 @@ $color-safe: #2ecc71;
 $card-bg: #ffffff;
 $card-shadow: 0 8px 28px rgba(23, 33, 43, 0.08);
 
+$breakpoints: (
+  mobile: 0,
+  tablet: 768px,
+  laptop: 1024px,
+  desktop: 1440px
+);
+
 @function px($pixels) {
   @return #{$pixels / 16}rem;
 }
@@ -22,13 +29,28 @@ $card-shadow: 0 8px 28px rgba(23, 33, 43, 0.08);
   font-family: $font-family;
 }
 
+@mixin respond($size) {
+  $value: map-get($breakpoints, $size);
+  @if $value {
+    @media (min-width: $value) {
+      @content;
+    }
+  } @else {
+    @warn "No breakpoint found for `#{$size}`.";
+  }
+}
+
 @mixin card-panel {
   max-width: 900px;
   margin: 0 auto;
-  padding: px(24);
+  padding: px(18);
   background: $card-bg;
   border-radius: px(8);
   box-shadow: $card-shadow;
+
+  @include respond(tablet) {
+    padding: px(24);
+  }
 }
 
 @mixin button-style($background, $color: $color-white, $radius: px(6), $padding-y: px(8), $padding-x: px(14)) {
