@@ -14,5 +14,7 @@ export const environment = {
 
   appInsightsInstrumentationKey: '0cba2b27-3d9a-462f-9038-801c35814065',
 
-  clientId: '28c65b20-6023-4830-9bc6-68f67239c58a'
+  clientId: '28c65b20-6023-4830-9bc6-68f67239c58a',
+
+  authorityTenant: 'cdce296b-55bc-4400-87a1-b0b6e1d32628'
 };
