@@ -4,6 +4,8 @@
         "Rename-Item": true,
         "Move-Item": true,
         "npm install": true,
-        "ForEach-Object": true
+        "ForEach-Object": true,
+        "docker run": true,
+        "timeout": true
     }
 }
