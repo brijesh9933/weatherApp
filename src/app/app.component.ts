@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ApplicationInsightsService } from './services/application-insights.service';
 import { AuthService } from './services/auth.service';
 
@@ -9,8 +11,9 @@ import { AuthService } from './services/auth.service';
     styleUrls: ['./app.component.scss'],
     standalone: false
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'Weather';
+  private destroy$ = new Subject<void>();
 
   navItems = [
     { label: 'Home', path: '/home' },
@@ -38,6 +41,19 @@ export class AppComponent {
   ) {
     this.applicationInsightsService.initializeUserContext();
     this.applicationInsightsService.initializeRouteTracking(this.router);
+  }
+
+  ngOnInit() {
+    this.authService.getLoginStatus()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        // Trigger change detection on login status change
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   login() {
