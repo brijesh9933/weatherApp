@@ -20,12 +20,31 @@ export class AppComponent implements OnInit, OnDestroy {
     { label: 'Weather', path: '/weather' },
     { label: 'Favorites', path: '/favorites' },
     { label: 'Profile', path: '/profile', requiresAuth: true },
-    { label: 'Admin', path: '/admin' }
+    // Hide Admin by default; only show for admin users.
+    { label: 'Admin', path: '/admin', requiresRole: 'Admin' }
   ];
+
 
   isDisabled(item: { requiresAuth?: boolean }) {
     return !!item.requiresAuth && !this.authService.isLoggedIn;
   }
+
+  shouldShow(item: { requiresRole?: string }) {
+    if (!item.requiresRole) {
+      return true;
+    }
+
+    if (!this.authService.isLoggedIn) {
+      return false;
+    }
+
+    const account = this.authService.getActiveAccount();
+    const email = (account?.username ?? account?.name ?? '').toLowerCase();
+
+    return item.requiresRole === 'Admin' &&
+      email === 'sharma9933.brijesh@gmail.com';
+  }
+
 
   onNavClick(event: MouseEvent, item: { requiresAuth?: boolean }) {
     if (this.isDisabled(item)) {

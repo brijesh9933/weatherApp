@@ -2,6 +2,7 @@
   <nav class="navbar" aria-label="Primary navigation">
     <ng-container *ngFor="let item of navItems">
       <a
+        *ngIf="shouldShow(item)"
         [routerLink]="item.path"
         routerLinkActive="active"
         [class.disabled]="isDisabled(item)"
@@ -10,6 +11,7 @@
         {{ item.label }}
       </a>
     </ng-container>
+
 
     <div class="nav-actions">
       <span class="welcome">Welcome {{ authService.getActiveAccountName() }}</span>
