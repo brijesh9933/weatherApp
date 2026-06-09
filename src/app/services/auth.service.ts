@@ -33,10 +33,6 @@ export class AuthService {
               this.msalInstance.setActiveAccount(accounts[0]);
             }
           }
-
-          // Debug: remove or keep as needed
-          console.log('MSAL active account (after redirect handler):', this.msalInstance.getActiveAccount());
-
           this.loginStatusSubject.next(!!this.msalInstance.getActiveAccount());
         })
         .catch(() => {
@@ -55,11 +51,21 @@ export class AuthService {
     return this.loginStatus$;
   }
 
+  // Expose MSAL account info to UI (e.g., Profile page)
+  getActiveAccount(): AccountInfo | null {
+    return this.msalInstance.getActiveAccount() ?? this.msalInstance.getAllAccounts()[0] ?? null;
+  }
+
+  getAllAccounts(): AccountInfo[] {
+    return this.msalInstance.getAllAccounts();
+  }
+
   getActiveAccountName(): string {
-    const account = this.msalInstance.getActiveAccount();
-    // Prefer account.name; fall back to username/email claim if needed.
+    const account = this.getActiveAccount();
     return account?.name ?? account?.username ?? '';
   }
+
+
 
 
   private ensureInitialized(): Promise<void> {

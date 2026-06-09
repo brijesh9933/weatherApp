@@ -1,4 +1,19 @@
 <section class="page-panel">
   <h1>Profile</h1>
-  <p>User profile details will appear here.</p>
+
+  <ng-container *ngIf="authService.getAllAccounts().length; else notLoggedIn">
+    <div class="profile-details">
+      <p><b>name:</b> {{ authService.getActiveAccount()?.name }}</p>
+      <p><b>username:</b> {{ authService.getActiveAccount()?.username }}</p>
+      <p><b>tenantId:</b> {{ authService.getActiveAccount()?.tenantId }}</p>
+      <p><b>homeAccountId:</b> {{ authService.getActiveAccount()?.homeAccountId }}</p>
+      <p><b>authorityType:</b> {{ authService.getActiveAccount()?.authorityType }}</p>
+    </div>
+
+  </ng-container>
+
+  <ng-template #notLoggedIn>
+    <p>User profile details will appear here after login.</p>
+  </ng-template>
 </section>
+
