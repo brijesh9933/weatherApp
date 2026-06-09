@@ -15,25 +15,35 @@ export class AuthService {
   constructor() {
     this.msalInstance.initialize().then(() => {
       this.initialized = true;
-      // Handle redirect after login
-      this.msalInstance.handleRedirectPromise()
-        .then((response: AuthenticationResult | null) => {
-          if (response) {
-            this.msalInstance.setActiveAccount(response.account);
-            this.loginStatusSubject.next(true);
-          } else {
-            const activeAccount = this.msalInstance.getActiveAccount();
-            if (activeAccount) {
-              this.loginStatusSubject.next(true);
+
+      // Handle redirect after login (if this load was part of redirect flow)
+      this.msalInstance
+        .handleRedirectPromise()
+        .then((_response: AuthenticationResult | null) => {
+          // If a redirect response exists, MSAL account is usually available there.
+          // If redirect response is null (common on some refreshes), try to recover
+          // an account from the MSAL cache so guards/UI work immediately.
+          const account = this.msalInstance.getActiveAccount();
+          const active = account;
+          
+          if (!active) {
+            const accounts = this.msalInstance.getAllAccounts();
+            if (accounts.length > 0) {
+              // Pick the first cached account. Alternatively, pick based on homeAccountId.
+              this.msalInstance.setActiveAccount(accounts[0]);
             }
           }
+
+          // Debug: remove or keep as needed
+          console.log('MSAL active account (after redirect handler):', this.msalInstance.getActiveAccount());
+
+          this.loginStatusSubject.next(!!this.msalInstance.getActiveAccount());
         })
-        .catch((error: unknown) => {
-          console.error('Redirect error:', error);
-          this.loginStatusSubject.next(false);
+        .catch(() => {
+          this.loginStatusSubject.next(!!this.msalInstance.getActiveAccount());
         });
-    }).catch((error: unknown) => {
-      console.error('MSAL initialization failed', error);
+    }).catch(() => {
+      this.loginStatusSubject.next(false);
     });
   }
 
@@ -44,6 +54,13 @@ export class AuthService {
   getLoginStatus(): Observable<boolean> {
     return this.loginStatus$;
   }
+
+  getActiveAccountName(): string {
+    const account = this.msalInstance.getActiveAccount();
+    // Prefer account.name; fall back to username/email claim if needed.
+    return account?.name ?? account?.username ?? '';
+  }
+
 
   private ensureInitialized(): Promise<void> {
     if (this.initialized) {
@@ -59,16 +76,17 @@ export class AuthService {
       .then(() => this.msalInstance.loginRedirect({
         scopes: ['openid', 'profile', 'User.Read']
       }))
-      .catch((error: unknown) => {
-        console.error('Login failed', error);
+      .catch(() => {
+        // Intentionally ignore here; auth failures are handled by MSAL/guards.
       });
   }
 
   logout() {
     this.ensureInitialized()
       .then(() => this.msalInstance.logoutRedirect())
-      .catch((error: unknown) => {
-        console.error('Logout failed', error);
+      .catch(() => {
+        // Intentionally ignore here; auth failures are handled by MSAL/guards.
       });
   }
 }
+

@@ -85,7 +85,7 @@
               "namedChunks": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -93,15 +93,17 @@
             "production": {
               "buildTarget": "Weather:build:production"
             },
+            "development": {
+              "buildTarget": "Weather:build:development"
+            },
             "dev": {
               "buildTarget": "Weather:build:dev"
             },
-          
             "test": {
               "buildTarget": "Weather:build:test"
             }
           },
-          "defaultConfiguration": "dev"
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",

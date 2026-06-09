@@ -12,14 +12,19 @@
     </ng-container>
 
     <div class="nav-actions">
+      <span class="welcome">Welcome {{ authService.getActiveAccountName() }}</span>
+
       <button *ngIf="!authService.isLoggedIn" (click)="login()">
+
         Login
       </button>
 
       <button *ngIf="authService.isLoggedIn" (click)="logout()">
         Logout
       </button>
+
     </div>
+
   </nav>
 
   <main class="page-content">
