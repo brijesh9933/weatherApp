@@ -12,6 +12,10 @@ variables:
 
   # SonarCloud (free tier)
   SONAR_HOST_URL: 'https://sonarcloud.io'
+  SONAR_TOKEN: '63980db8660ea350206cfd86f5eb07619011982d'
+  SONAR_PROJECT_KEY: 'brijesh9933_weatherApp'
+  SONAR_ORGANIZATION: 'brijesh9933'
+
 
 
 
@@ -138,20 +142,23 @@ stages:
                 exit 1;
               fi
               if [ -z "${SONAR_ORGANIZATION:-}" ]; then
-                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization).";
+                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization slug, as shown in SonarCloud).";
                 exit 1;
               fi
               if [ -z "${SONAR_PROJECT_KEY:-}" ]; then
                 # Prefer pipeline variable if present; otherwise fallback to repo name.
                 export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}";
-                echo "SONAR_PROJECT_KEY not set; using: ${SONAR_PROJECT_KEY}";
+                echo "WARNING: SONAR_PROJECT_KEY not set; using fallback: ${SONAR_PROJECT_KEY}";
               fi
 
-
-
+              # Helpful diagnostics (do NOT print token)
+              echo "SonarCloud host: ${SONAR_HOST_URL}"
+              echo "SonarCloud organization: ${SONAR_ORGANIZATION}"
+              echo "SonarCloud projectKey: ${SONAR_PROJECT_KEY}"
 
               # Run analysis
               ./node_modules/.bin/sonar-scanner \
+                -X \
                 -Dsonar.host.url="$SONAR_HOST_URL" \
                 -Dsonar.login="$SONAR_TOKEN" \
                 -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
