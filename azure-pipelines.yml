@@ -10,6 +10,11 @@ variables:
   acrServiceConnection: weatherappres-acr-service-connection
   imageRepository: weather-app
 
+  # SonarCloud (free tier)
+  SONAR_HOST_URL: 'https://sonarcloud.io'
+
+
+
 stages:
   - stage: Lint
     displayName: Lint
@@ -79,18 +84,16 @@ stages:
               npm run build:dev
             displayName: Angular build (dev)
 
-  - stage: SonarQube
-    displayName: SonarQube/SonarCloud analysis (gate)
+  - stage: SonarCloud
+    displayName: SonarCloud analysis (gate)
     dependsOn:
-      - UnitTests
-      - Build_Dev
-      - Build_Prod
+      - Lint
     condition: succeeded()
-
     jobs:
-      - job: Sonar
+      - job: SonarCloud
         pool:
           vmImage: $(vmImageName)
+
         steps:
           - checkout: self
           - task: NodeTool@0
@@ -100,48 +103,75 @@ stages:
           - script: npm ci
             displayName: Install dependencies
 
-          # Ensure headless browser tests are executed during Sonar gate as well.
-          - bash: |
-              set -euo pipefail
-              sudo apt-get update
-              sudo apt-get install -y google-chrome-stable
-              export CHROME_BIN=/usr/bin/google-chrome
-              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
-              # Enforce minimum coverage (overall line coverage) before Sonar gate
-              node scripts/coverage-check.js coverage/weather/lcov.info
-            displayName: Karma tests (ChromeHeadless) before Sonar
 
-          # Sonar analysis. This expects your Sonar service connection/organization to be configured in Azure DevOps.
-          # Provide SONAR_HOST_URL / SONAR_TOKEN in pipeline variables or use a service connection.
-          # If you use SonarCloud, set: sonar.organization and sonar.projectKey accordingly.
-          # Sonar analysis via plain CLI to avoid dependency on marketplace Sonar tasks.
-          # Required variables (set in Azure DevOps pipeline variables):
-          # - SONAR_HOST_URL (e.g. https://sonarcloud.io or https://sonarqube.yourdomain)
-          # - SONAR_TOKEN
-          # - SONAR_PROJECT_KEY (use 'weather' by default if you don't override)
-          # Optional:
-          # - SONAR_ORGANIZATION (SonarCloud)
+
+          # SonarCloud analysis via plain CLI (free tier).
+          # Required pipeline variables (set in Azure DevOps):
+          # - SONAR_TOKEN (secret)
+          # - SONAR_PROJECT_KEY
+          # - SONAR_ORGANIZATION
+          # Note: SONAR_HOST_URL is fixed to https://sonarcloud.io in the YAML variables.
+
+
+          # Install deps + run tests once here so sonar has coverage available in this stage.
           - bash: |
               set -euo pipefail
               npm_config_loglevel=error
 
+              sudo apt-get update
+              sudo apt-get install -y google-chrome-stable
+              export CHROME_BIN=/usr/bin/google-chrome
+
+              npm ci
+
+              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
+              node scripts/coverage-check.js coverage/weather/lcov.info
+
+
+
               # Install sonar-scanner locally (no global agent tooling required)
               npm i --no-save sonar-scanner
 
+              # Validate required env vars (fails fast with a clear message)
+              if [ -z "${SONAR_TOKEN:-}" ]; then
+                echo "ERROR: SONAR_TOKEN is required (create a SonarCloud token and set it as a secret pipeline variable).";
+                exit 1;
+              fi
+              if [ -z "${SONAR_ORGANIZATION:-}" ]; then
+                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization).";
+                exit 1;
+              fi
+              if [ -z "${SONAR_PROJECT_KEY:-}" ]; then
+                # Prefer pipeline variable if present; otherwise fallback to repo name.
+                export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}";
+                echo "SONAR_PROJECT_KEY not set; using: ${SONAR_PROJECT_KEY}";
+              fi
+
+
+
+
               # Run analysis
               ./node_modules/.bin/sonar-scanner \
-                -Dsonar.host.url="${SONAR_HOST_URL}" \
-                -Dsonar.login="${SONAR_TOKEN}" \
-                -Dsonar.projectKey="${SONAR_PROJECT_KEY:-weather}" \
-                -Dsonar.projectName="${SONAR_PROJECT_KEY:-weather}" \
-                ${SONAR_ORGANIZATION:+-Dsonar.organization="${SONAR_ORGANIZATION}"} \
+                -Dsonar.host.url="$SONAR_HOST_URL" \
+                -Dsonar.login="$SONAR_TOKEN" \
+                -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
+                -Dsonar.projectName="$SONAR_PROJECT_KEY" \
+                -Dsonar.organization="$SONAR_ORGANIZATION" \
                 -Dsonar.javascript.lcov.reportPaths="coverage/weather/lcov.info"
+
             displayName: Sonar scanner (CLI)
             env:
+              # Host is fixed for SonarCloud
+
               SONAR_HOST_URL: $(SONAR_HOST_URL)
+
+              # Required: set these in Azure DevOps pipeline variables (mark SONAR_TOKEN as secret)
               SONAR_TOKEN: $(SONAR_TOKEN)
               SONAR_PROJECT_KEY: $(SONAR_PROJECT_KEY)
               SONAR_ORGANIZATION: $(SONAR_ORGANIZATION)
+
+
+
 
 
 
