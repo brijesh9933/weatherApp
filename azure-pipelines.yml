@@ -86,6 +86,7 @@ stages:
       - Build_Dev
       - Build_Prod
     condition: succeeded()
+
     jobs:
       - job: Sonar
         pool:
@@ -113,21 +114,26 @@ stages:
           # Sonar analysis. This expects your Sonar service connection/organization to be configured in Azure DevOps.
           # Provide SONAR_HOST_URL / SONAR_TOKEN in pipeline variables or use a service connection.
           # If you use SonarCloud, set: sonar.organization and sonar.projectKey accordingly.
-          - task: SonarQubePrepare@5
-            displayName: SonarQubePrepare
+          # SonarCloud/SonarQube tasks can vary depending on what is installed in the Azure DevOps org.
+          # Use the SonarCloud tasks (typically available when the marketplace extension is installed).
+          - task: SonarCloudPrepare@3
+            displayName: SonarCloudPrepare
             inputs:
-              SonarQube: 'SonarQubeServiceConnection'
+              SonarCloud: 'SonarCloudServiceConnection'
+              organization: '$(sonar.organization)'
               scannerMode: 'CLI'
               configMode: 'manual'
               cliProjectKey: 'weather'
               cliProjectName: 'weather'
-          - task: SonarQubeAnalyze@5
-            displayName: SonarQubeAnalyze
 
-          - task: SonarQubePublish@5
-            displayName: SonarQubePublish
+          - task: SonarCloudAnalyze@3
+            displayName: SonarCloudAnalyze
+
+          - task: SonarCloudPublish@3
+            displayName: SonarCloudPublish
             inputs:
               pollingTimeoutSec: '300'
+
 
   - stage: Build_Prod
     displayName: Build (Production)
