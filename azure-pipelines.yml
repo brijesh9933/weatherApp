@@ -8,7 +8,10 @@ pr: none
 
 variables:
   vmImageName: ubuntu-latest
-  acrServiceConnection: weatherappres-acr-service-connection
+  # Must be an Azure DevOps service connection of type "dockerregistry"
+  # (not "azurerm"). Create/select the correct ACR Docker Registry service connection.
+  acrServiceConnection: weatherappres-acr-docker-service-connection
+
   imageRepository: weather-app
   acrName: weatherappres
 
