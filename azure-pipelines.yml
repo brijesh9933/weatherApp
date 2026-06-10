@@ -270,8 +270,13 @@ stages:
 
                 echo "Logging into ${ACR_LOGIN_SERVER}..."
 
+                # Login to ACR. This must produce a token with *push* permissions.
                 az acr login --name "${ACR_NAME}"
                 echo "ACR login complete."
+
+                # Verify we can resolve the login server.
+                docker info >/dev/null
+
               addSpnToEnvironment: true
             env:
               ACR_NAME: $(acrName)
