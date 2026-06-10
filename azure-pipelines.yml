@@ -11,12 +11,9 @@ variables:
 
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '11fe6c31-c94d-4fe1-8582-b137ca773419'
-
   imageRepository: 'weatherapp'
   containerRegistry: 'weatherappres.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-
-  # Use build id as tag (fallbacks are defined in Docker_Publish stage)
   tag: '$(Build.BuildId)'
 
   # Optional ACR name used by the current pipeline login step
@@ -213,114 +210,25 @@ stages:
             displayName: Angular build (production)
 
 
-# Publish Docker after quality passes.
-  - stage: Docker_Publish
-
-    displayName: Docker publish (ACR)
+  - stage: DockerPush
+    displayName: Build and push Docker image
     dependsOn: Build_Prod
     condition: succeeded()
     jobs:
-      - job: Docker
-        displayName: Build and push image
+      - job: DockerPushJob
+        displayName: Docker buildAndPush
         pool:
           vmImage: $(vmImageName)
         steps:
-          - checkout: self
-            fetchDepth: 0
-            persistCredentials: true
-
-          - task: NodeTool@0
-            displayName: Use Node.js
-            inputs:
-              versionSpec: '20.x'
-
-          - bash: |
-              set -euo pipefail
-
-              VERSION="$(node -p "require('./package.json').version")"
-              SHORT_SHA="$(git rev-parse --short HEAD)"
-              RELEASE_TAG="v${VERSION}"
-
-              echo "Package version: ${VERSION}"
-              echo "Commit tag: ${SHORT_SHA}"
-              echo "Release tag: ${RELEASE_TAG}"
-
-              echo "##vso[task.setvariable variable=packageVersion]${VERSION}"
-              echo "##vso[task.setvariable variable=shortSha]${SHORT_SHA}"
-              echo "##vso[task.setvariable variable=releaseTag]${RELEASE_TAG}"
-            displayName: Read package version
-
           - task: Docker@2
-            displayName: Build image
-            inputs:
-              command: build
-              repository: $(imageRepository)
-              Dockerfile: Dockerfile
-              buildContext: .
-              tags: |
-                $(releaseTag)
-                $(shortSha)
-                latest
-
-          - task: AzureCLI@2
-            displayName: Login to ACR (using azurerm service connection)
-            inputs:
-              azureSubscription: $(acrServiceConnection)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -euo pipefail
-
-                # Expected pipeline variable: acrName (ACR name without the .azurecr.io suffix)
-                : "${ACR_NAME:?ACR_NAME variable not set}"
-                ACR_LOGIN_SERVER="${ACR_NAME}.azurecr.io"
-
-                echo "Logging into ${ACR_LOGIN_SERVER}..."
-
-                # Login to ACR. This must produce a token with *push* permissions.
-                az acr login --name "${ACR_NAME}"
-                echo "ACR login complete."
-
-                # Verify we can resolve the login server.
-                docker info >/dev/null
-
-              addSpnToEnvironment: true
-            env:
-              ACR_NAME: $(acrName)
-
-          - task: Docker@2
-            displayName: Build and push image (manual login)
+            displayName: Build and push an image to container registry
             inputs:
               command: buildAndPush
               repository: $(imageRepository)
-              Dockerfile: Dockerfile
-              buildContext: .
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
               tags: |
-                $(releaseTag)
-                $(shortSha)
-                latest
-              # containerRegistry intentionally omitted because Docker@2 cannot use an azurerm service connection
-              # Authentication is handled by the prior AzureCLI@2 az acr login step.
+                $(tag)
 
-          - bash: |
-              set -euo pipefail
-
-
-              git config user.email "azure-pipelines@local"
-              git config user.name "Azure Pipelines"
-
-              if git rev-parse "$(releaseTag)" >/dev/null 2>&1; then
-                echo "Git tag $(releaseTag) already exists locally."
-                exit 0
-              fi
-
-              if git ls-remote --tags origin "refs/tags/$(releaseTag)" | grep "$(releaseTag)"; then
-                echo "Git tag $(releaseTag) already exists on origin."
-                exit 0
-              fi
-
-              git tag -a "$(releaseTag)" -m "Release $(releaseTag)"
-              git push origin "$(releaseTag)"
-            displayName: Create Git version tag
 
 
