@@ -1,25 +1,32 @@
 trigger:
-  branches:
-    include:
-      - main
+- main
 
 pr: none
 
+resources:
+- repo: self
+
 variables:
   vmImageName: ubuntu-latest
-  acrServiceConnection: weatherappres-acr-service-connection
-  imageRepository: weather-app
-  acrName: weatherappres
 
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '11fe6c31-c94d-4fe1-8582-b137ca773419'
+
+  imageRepository: 'weatherapp'
+  containerRegistry: 'weatherappres.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+
+  # Use build id as tag (fallbacks are defined in Docker_Publish stage)
+  tag: '$(Build.BuildId)'
+
+  # Optional ACR name used by the current pipeline login step
+  acrName: 'weatherappres'
 
   # SonarCloud (free tier)
   SONAR_HOST_URL: 'https://sonarcloud.io'
   SONAR_TOKEN: '63980db8660ea350206cfd86f5eb07619011982d'
   SONAR_PROJECT_KEY: 'brijesh9933_weatherApp'
   SONAR_ORGANIZATION: 'brijesh9933'
-
-
-
 
 stages:
   - stage: Lint
