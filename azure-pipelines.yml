@@ -11,18 +11,113 @@ variables:
   imageRepository: weather-app
 
 stages:
-  - stage: BuildAndPublish
-    displayName: Build and publish Docker image
+  - stage: Lint
+    displayName: Lint
     jobs:
-      - job: Docker
-        displayName: Build, tag, and push
+      - job: LintJob
         pool:
           vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - script: npm run lint
+            displayName: Run ESLint
 
+  - stage: UnitTests
+    displayName: Unit tests
+    dependsOn: Lint
+    condition: succeeded()
+    jobs:
+      - job: TestJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          # Angular/Karma needs Chrome. This setup is commonly enough for Ubuntu agents.
+          - bash: |
+              set -euo pipefail
+              sudo apt-get update
+              sudo apt-get install -y google-chrome-stable
+            displayName: Install Chrome
+          - bash: |
+              set -euo pipefail
+              export CHROME_BIN=/usr/bin/google-chrome
+              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=false
+            displayName: Run Karma tests (headless)
+
+  - stage: Build_Dev
+    displayName: Build (Dev)
+    dependsOn: UnitTests
+    condition: succeeded()
+    jobs:
+      - job: BuildDev
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - bash: |
+              set -euo pipefail
+              npm run build:dev
+            displayName: Angular build (dev)
+
+  - stage: Build_Prod
+    displayName: Build (Production)
+    dependsOn: Build_Dev
+    condition: succeeded()
+    jobs:
+      - job: BuildProd
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - bash: |
+              set -euo pipefail
+              npm run build:prod
+            displayName: Angular build (production)
+
+  # Publish Docker after quality passes.
+  # Note: tags are the same regardless of dev/prod as requested.
+  - stage: Docker_Publish
+    displayName: Docker publish (ACR)
+    dependsOn: Build_Prod
+    condition: succeeded()
+    jobs:
+      - job: Docker
+        displayName: Build and push image
+        pool:
+          vmImage: $(vmImageName)
         steps:
           - checkout: self
             fetchDepth: 0
             persistCredentials: true
+
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
 
           - bash: |
               set -euo pipefail
@@ -72,3 +167,4 @@ stages:
               git tag -a "$(releaseTag)" -m "Release $(releaseTag)"
               git push origin "$(releaseTag)"
             displayName: Create Git version tag
+
