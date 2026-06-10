@@ -53,7 +53,9 @@ stages:
           - bash: |
               set -euo pipefail
               export CHROME_BIN=/usr/bin/google-chrome
-              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=false
+              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
+              # Enforce minimum coverage (overall line coverage)
+              node scripts/coverage-check.js coverage/weather/lcov.info
             displayName: Run Karma tests (headless)
 
   - stage: Build_Dev
@@ -77,6 +79,56 @@ stages:
               npm run build:dev
             displayName: Angular build (dev)
 
+  - stage: SonarQube
+    displayName: SonarQube/SonarCloud analysis (gate)
+    dependsOn:
+      - UnitTests
+      - Build_Dev
+      - Build_Prod
+    condition: succeeded()
+    jobs:
+      - job: Sonar
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+
+          # Ensure headless browser tests are executed during Sonar gate as well.
+          - bash: |
+              set -euo pipefail
+              sudo apt-get update
+              sudo apt-get install -y google-chrome-stable
+              export CHROME_BIN=/usr/bin/google-chrome
+              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
+              # Enforce minimum coverage (overall line coverage) before Sonar gate
+              node scripts/coverage-check.js coverage/weather/lcov.info
+            displayName: Karma tests (ChromeHeadless) before Sonar
+
+          # Sonar analysis. This expects your Sonar service connection/organization to be configured in Azure DevOps.
+          # Provide SONAR_HOST_URL / SONAR_TOKEN in pipeline variables or use a service connection.
+          # If you use SonarCloud, set: sonar.organization and sonar.projectKey accordingly.
+          - task: SonarQubePrepare@5
+            displayName: SonarQubePrepare
+            inputs:
+              SonarQube: 'SonarQubeServiceConnection'
+              scannerMode: 'CLI'
+              configMode: 'manual'
+              cliProjectKey: 'weather'
+              cliProjectName: 'weather'
+          - task: SonarQubeAnalyze@5
+            displayName: SonarQubeAnalyze
+
+          - task: SonarQubePublish@5
+            displayName: SonarQubePublish
+            inputs:
+              pollingTimeoutSec: '300'
+
   - stage: Build_Prod
     displayName: Build (Production)
     dependsOn: Build_Dev
@@ -97,6 +149,7 @@ stages:
               set -euo pipefail
               npm run build:prod
             displayName: Angular build (production)
+
 
 # Publish Docker after quality passes.
 # Temporarily disabled as requested.

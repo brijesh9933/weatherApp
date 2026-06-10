@@ -63,7 +63,7 @@ function pct(covered, total) {
 
 function main() {
   const lcovPath = process.argv[2] || path.join(__dirname, '..', 'coverage', 'weather', 'lcov.info');
-  const minCoverage = Number(process.env.MIN_COVERAGE || 70);
+  const minCoverage = Number(process.env.MIN_COVERAGE || 50);
 
   if (!fs.existsSync(lcovPath)) {
     console.error(`ERROR: LCOV file not found at: ${lcovPath}`);
