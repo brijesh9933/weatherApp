@@ -177,7 +177,7 @@ stages:
           - task: AzureCLI@2
             displayName: Update App Service container image
             inputs:
-              azureSubscription: $(acrServiceConnection)
+              azureSubscription: $(dockerRegistryServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
