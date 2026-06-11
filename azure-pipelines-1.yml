@@ -103,7 +103,6 @@ stages:
       - job: SonarCloud
         pool:
           vmImage: $(vmImageName)
-
         steps:
           - checkout: self
           - task: NodeTool@0
@@ -112,16 +111,6 @@ stages:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-
-
-
-          # SonarCloud analysis via plain CLI (free tier).
-          # Required pipeline variables (set in Azure DevOps):
-          # - SONAR_TOKEN (secret)
-          # - SONAR_PROJECT_KEY
-          # - SONAR_ORGANIZATION
-          # Note: SONAR_HOST_URL is fixed to https://sonarcloud.io in the YAML variables.
-
 
           # Install deps + run tests once here so sonar has coverage available in this stage.
           - bash: |
@@ -137,24 +126,22 @@ stages:
               npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
               node scripts/coverage-check.js coverage/weather/lcov.info
 
-
-
               # Install sonar-scanner locally (no global agent tooling required)
               npm i --no-save sonar-scanner
 
               # Validate required env vars (fails fast with a clear message)
               if [ -z "${SONAR_TOKEN:-}" ]; then
-                echo "ERROR: SONAR_TOKEN is required (create a SonarCloud token and set it as a secret pipeline variable).";
-                exit 1;
+                echo "ERROR: SONAR_TOKEN is required (create a SonarCloud token and set it as a secret pipeline variable)."
+                exit 1
               fi
               if [ -z "${SONAR_ORGANIZATION:-}" ]; then
-                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization slug, as shown in SonarCloud).";
-                exit 1;
+                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization slug, as shown in SonarCloud)."
+                exit 1
               fi
               if [ -z "${SONAR_PROJECT_KEY:-}" ]; then
                 # Prefer pipeline variable if present; otherwise fallback to repo name.
-                export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}";
-                echo "WARNING: SONAR_PROJECT_KEY not set; using fallback: ${SONAR_PROJECT_KEY}";
+                export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}"
+                echo "WARNING: SONAR_PROJECT_KEY not set; using fallback: ${SONAR_PROJECT_KEY}"
               fi
 
               # Helpful diagnostics (do NOT print token)
@@ -171,22 +158,12 @@ stages:
                 -Dsonar.projectName="$SONAR_PROJECT_KEY" \
                 -Dsonar.organization="$SONAR_ORGANIZATION" \
                 -Dsonar.javascript.lcov.reportPaths="coverage/weather/lcov.info"
-
             displayName: Sonar scanner (CLI)
             env:
-              # Host is fixed for SonarCloud
-
               SONAR_HOST_URL: $(SONAR_HOST_URL)
-
-              # Required: set these in Azure DevOps pipeline variables (mark SONAR_TOKEN as secret)
               SONAR_TOKEN: $(SONAR_TOKEN)
               SONAR_PROJECT_KEY: $(SONAR_PROJECT_KEY)
               SONAR_ORGANIZATION: $(SONAR_ORGANIZATION)
-
-
-
-
-
 
   - stage: Build_Prod
     displayName: Build (Production)
