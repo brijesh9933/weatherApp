@@ -1,34 +1,24 @@
 trigger:
-- main
+  - main
 
 pr: none
 
 resources:
-- repo: self
+  - repo: self
 
 variables:
-  vmImageName: ubuntu-latest
+  - group: weather-secrets
 
-  # Values below should be provided via Azure DevOps pipeline variables / variable groups.
-  # Mark the corresponding variables as Secrets in Azure DevOps to avoid leaking them in logs.
-  dockerRegistryServiceConnection: $(dockerRegistryServiceConnection)
+  vmImageName: ubuntu-latest
   imageRepository: $(imageRepository)
   containerRegistry: $(containerRegistry)
-
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: 'latest'
-
-  # Optional ACR name used by the current pipeline login step (also provide via pipeline variables)
   acrName: $(acrName)
-
-
-  # SonarCloud values should be provided via Azure DevOps pipeline variables / variable groups.
-  # Mark SONAR_TOKEN as a Secret variable in Azure DevOps.
   SONAR_HOST_URL: $(SONAR_HOST_URL)
   SONAR_TOKEN: $(SONAR_TOKEN)
   SONAR_PROJECT_KEY: $(SONAR_PROJECT_KEY)
   SONAR_ORGANIZATION: $(SONAR_ORGANIZATION)
-
 
 stages:
   - stage: Lint
@@ -64,7 +54,6 @@ stages:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-          # Angular/Karma needs Chrome. This setup is commonly enough for Ubuntu agents.
           - bash: |
               set -euo pipefail
               sudo apt-get update
@@ -74,7 +63,6 @@ stages:
               set -euo pipefail
               export CHROME_BIN=/usr/bin/google-chrome
               npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
-              # Enforce minimum coverage (overall line coverage)
               node scripts/coverage-check.js coverage/weather/lcov.info
             displayName: Run Karma tests (headless)
 
@@ -101,8 +89,7 @@ stages:
 
   - stage: SonarCloud
     displayName: SonarCloud analysis (gate)
-    dependsOn:
-      - Lint
+    dependsOn: Lint
     condition: succeeded()
     jobs:
       - job: SonarCloud
@@ -116,8 +103,6 @@ stages:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-
-          # Install deps + run tests once here so sonar has coverage available in this stage.
           - bash: |
               set -euo pipefail
               npm_config_loglevel=error
@@ -131,10 +116,8 @@ stages:
               npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
               node scripts/coverage-check.js coverage/weather/lcov.info
 
-              # Install sonar-scanner locally (no global agent tooling required)
               npm i --no-save sonar-scanner
 
-              # Validate required env vars (fails fast with a clear message)
               if [ -z "${SONAR_TOKEN:-}" ]; then
                 echo "ERROR: SONAR_TOKEN is required (create a SonarCloud token and set it as a secret pipeline variable)."
                 exit 1
@@ -144,17 +127,14 @@ stages:
                 exit 1
               fi
               if [ -z "${SONAR_PROJECT_KEY:-}" ]; then
-                # Prefer pipeline variable if present; otherwise fallback to repo name.
                 export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}"
                 echo "WARNING: SONAR_PROJECT_KEY not set; using fallback: ${SONAR_PROJECT_KEY}"
               fi
 
-              # Helpful diagnostics (do NOT print token)
               echo "SonarCloud host: ${SONAR_HOST_URL}"
               echo "SonarCloud organization: ${SONAR_ORGANIZATION}"
               echo "SonarCloud projectKey: ${SONAR_PROJECT_KEY}"
 
-              # Run analysis
               ./node_modules/.bin/sonar-scanner \
                 -X \
                 -Dsonar.host.url="$SONAR_HOST_URL" \
@@ -201,6 +181,17 @@ stages:
         pool:
           vmImage: $(vmImageName)
         steps:
+          - bash: |
+              set -euo pipefail
+              if [ -z "${DOCKER_REGISTRY_SERVICE_CONNECTION:-}" ]; then
+                echo "ERROR: dockerRegistryServiceConnection is not set or not authorized for this pipeline."
+                echo "Set it in Azure DevOps variable group 'weather-secrets' (exactly the name of the Docker Registry service connection)."
+                exit 1
+              fi
+            displayName: Validate dockerRegistryServiceConnection
+            env:
+              DOCKER_REGISTRY_SERVICE_CONNECTION: $(dockerRegistryServiceConnection)
+
           - task: Docker@2
             displayName: Build and push an image to container registry
             inputs:
