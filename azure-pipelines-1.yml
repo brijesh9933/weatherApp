@@ -216,14 +216,19 @@ stages:
         pool:
           vmImage: $(vmImageName)
         steps:
-          - task: AzureAppServiceContainer@1
+          - task: AzureCLI@2
             displayName: Update App Service container image to latest
             inputs:
               azureSubscription: weatherappres-acr-service-connection
-              appName: weatherappweb
-              resourceGroupName: WeatherApp_group
-              containers: |
-                weatherappres.azurecr.io/weather-app:latest
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                az webapp config container set \
+                  --name weatherappweb \
+                  --resource-group WeatherApp_group \
+                  --docker-custom-image-name weatherappres.azurecr.io/weather-app:latest
+
 
 
 
