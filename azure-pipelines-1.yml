@@ -186,7 +186,6 @@ stages:
               npm run build:prod
             displayName: Angular build (production)
 
-
   - stage: DockerPush
     displayName: Build and push Docker image
     dependsOn: Build_Prod
@@ -225,9 +224,6 @@ stages:
               resourceGroupName: WeatherApp_group
               containers:
                 - imageName: weatherappres.azurecr.io/weather-app:latest
-                  # If your Deployment Center already points to ACR, App Service will pull automatically
-                  # based on tag updates.
-                  # Otherwise, this task will also configure the container settings.
 
 
 
