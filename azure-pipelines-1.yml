@@ -9,21 +9,26 @@ resources:
 variables:
   vmImageName: ubuntu-latest
 
-  # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '11fe6c31-c94d-4fe1-8582-b137ca773419'
-  imageRepository: 'weather-app'
-  containerRegistry: 'weatherappres.azurecr.io'
+  # Values below should be provided via Azure DevOps pipeline variables / variable groups.
+  # Mark the corresponding variables as Secrets in Azure DevOps to avoid leaking them in logs.
+  dockerRegistryServiceConnection: $(dockerRegistryServiceConnection)
+  imageRepository: $(imageRepository)
+  containerRegistry: $(containerRegistry)
+
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: 'latest'
 
-  # Optional ACR name used by the current pipeline login step
-  acrName: 'weatherappres'
+  # Optional ACR name used by the current pipeline login step (also provide via pipeline variables)
+  acrName: $(acrName)
 
-  # SonarCloud (free tier)
-  SONAR_HOST_URL: 'https://sonarcloud.io'
-  SONAR_TOKEN: '63980db8660ea350206cfd86f5eb07619011982d'
-  SONAR_PROJECT_KEY: 'brijesh9933_weatherApp'
-  SONAR_ORGANIZATION: 'brijesh9933'
+
+  # SonarCloud values should be provided via Azure DevOps pipeline variables / variable groups.
+  # Mark SONAR_TOKEN as a Secret variable in Azure DevOps.
+  SONAR_HOST_URL: $(SONAR_HOST_URL)
+  SONAR_TOKEN: $(SONAR_TOKEN)
+  SONAR_PROJECT_KEY: $(SONAR_PROJECT_KEY)
+  SONAR_ORGANIZATION: $(SONAR_ORGANIZATION)
+
 
 stages:
   - stage: Lint
@@ -227,7 +232,10 @@ stages:
                 az webapp config container set \
                   --name weatherappweb \
                   --resource-group WeatherApp_group \
-                  --docker-custom-image-name weatherappres.azurecr.io/weather-app:latest
+                  --docker-custom-image-name $(containerRegistry)/$(imageRepository):latest
+
+
+
 
 
 
