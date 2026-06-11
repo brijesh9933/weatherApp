@@ -1,5 +1,7 @@
 trigger:
-  - main
+  branches:
+    include:
+      - main
 
 pr: none
 
@@ -25,7 +27,6 @@ stages:
         steps:
           - checkout: self
           - task: NodeTool@0
-            displayName: Use Node.js
             inputs:
               versionSpec: '20.x'
           - script: npm ci
@@ -44,12 +45,10 @@ stages:
         steps:
           - checkout: self
           - task: NodeTool@0
-            displayName: Use Node.js
             inputs:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-          # Angular/Karma needs Chrome. This setup is commonly enough for Ubuntu agents.
           - bash: |
               set -euo pipefail
               sudo apt-get update
@@ -65,8 +64,9 @@ stages:
             displayName: Publish code coverage results
             inputs:
               codeCoverageTool: Cobertura
-              summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/weather/cobertura-coverage.xml
-              reportDirectory: $(System.DefaultWorkingDirectory)/coverage
+              summaryFileLocation: coverage/weather/cobertura-coverage.xml
+              reportDirectory: coverage/weather
+              failIfCoverageEmpty: true
 
   - stage: Build_Dev
     displayName: Build (Dev)
@@ -79,20 +79,16 @@ stages:
         steps:
           - checkout: self
           - task: NodeTool@0
-            displayName: Use Node.js
             inputs:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-          - bash: |
-              set -euo pipefail
-              npm run build:dev
+          - bash: npm run build:dev
             displayName: Angular build (dev)
 
   - stage: SonarCloud
     displayName: SonarCloud analysis (gate)
-    dependsOn:
-      - Lint
+    dependsOn: Lint
     condition: succeeded()
     jobs:
       - job: SonarCloud
@@ -101,57 +97,28 @@ stages:
         steps:
           - checkout: self
           - task: NodeTool@0
-            displayName: Use Node.js
             inputs:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-
-          # Install deps + run tests once here so sonar has coverage available in this stage.
           - bash: |
               set -euo pipefail
-              npm_config_loglevel=error
-
               sudo apt-get update
               sudo apt-get install -y google-chrome-stable
               export CHROME_BIN=/usr/bin/google-chrome
 
               npm ci
-
               npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
               node scripts/coverage-check.js coverage/weather/lcov.info
 
-              # Install sonar-scanner locally (no global agent tooling required)
               npm i --no-save sonar-scanner
 
-              # Validate required env vars (fails fast with a clear message)
-              if [ -z "${SONAR_TOKEN:-}" ]; then
-                echo "ERROR: SONAR_TOKEN is required (create a SonarCloud token and set it as a secret pipeline variable)."
-                exit 1
-              fi
-              if [ -z "${SONAR_ORGANIZATION:-}" ]; then
-                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization slug, as shown in SonarCloud)."
-                exit 1
-              fi
-              if [ -z "${SONAR_PROJECT_KEY:-}" ]; then
-                # Prefer pipeline variable if present; otherwise fallback to repo name.
-                export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}"
-                echo "WARNING: SONAR_PROJECT_KEY not set; using fallback: ${SONAR_PROJECT_KEY}"
-              fi
-
-              # Helpful diagnostics (do NOT print token)
-              echo "SonarCloud host: ${SONAR_HOST_URL}"
-              echo "SonarCloud organization: ${SONAR_ORGANIZATION}"
-              echo "SonarCloud projectKey: ${SONAR_PROJECT_KEY}"
-
-              # Run analysis
               ./node_modules/.bin/sonar-scanner \
-                -X \
-                -Dsonar.host.url="$SONAR_HOST_URL" \
-                -Dsonar.login="$SONAR_TOKEN" \
-                -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
-                -Dsonar.projectName="$SONAR_PROJECT_KEY" \
-                -Dsonar.organization="$SONAR_ORGANIZATION" \
+                -Dsonar.host.url="$(SONAR_HOST_URL)" \
+                -Dsonar.login="$(SONAR_TOKEN)" \
+                -Dsonar.projectKey="$(SONAR_PROJECT_KEY)" \
+                -Dsonar.projectName="$(SONAR_PROJECT_KEY)" \
+                -Dsonar.organization="$(SONAR_ORGANIZATION)" \
                 -Dsonar.javascript.lcov.reportPaths="coverage/weather/lcov.info"
             displayName: Sonar scanner (CLI)
             env:
@@ -171,14 +138,11 @@ stages:
         steps:
           - checkout: self
           - task: NodeTool@0
-            displayName: Use Node.js
             inputs:
               versionSpec: '20.x'
           - script: npm ci
             displayName: Install dependencies
-          - bash: |
-              set -euo pipefail
-              npm run build:prod
+          - bash: npm run build:prod
             displayName: Angular build (production)
 
   - stage: DockerPush
@@ -187,12 +151,11 @@ stages:
     condition: succeeded()
     jobs:
       - job: DockerPushJob
-        displayName: Docker buildAndPush
         pool:
           vmImage: $(vmImageName)
         steps:
           - task: Docker@2
-            displayName: Build and push an image to container registry
+            displayName: Build and push image to ACR
             inputs:
               command: buildAndPush
               repository: $(imageRepository)
@@ -203,7 +166,7 @@ stages:
                 latest
 
   - stage: Deploy_AppService
-    displayName: Deploy to Azure App Service (continuous deployment)
+    displayName: Deploy to Azure App Service
     dependsOn: DockerPush
     condition: succeeded()
     jobs:
@@ -212,9 +175,9 @@ stages:
           vmImage: $(vmImageName)
         steps:
           - task: AzureCLI@2
-            displayName: Update App Service container image to latest
+            displayName: Update App Service container image
             inputs:
-              azureSubscription: weatherappres-acr-service-connection
+              azureSubscription: $(acrServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -223,8 +186,3 @@ stages:
                   --name weatherappweb \
                   --resource-group WeatherApp_group \
                   --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
-
-
-
-
-

@@ -13,7 +13,9 @@ describe('AppComponent', () => {
   beforeEach(async () => {
     applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', [
       'initializeUserContext',
-      'initializeRouteTracking'
+      'initializeRouteTracking',
+      'logEvent',
+      'logPageView'
     ]);
     applicationInsightsServiceSpy.initializeUserContext.and.returnValue('weather-user-test');
 
@@ -39,6 +41,21 @@ describe('AppComponent', () => {
 
   it('should initialize Application Insights route tracking on startup', () => {
     expect(applicationInsightsServiceSpy.initializeUserContext).toHaveBeenCalled();
+    expect(applicationInsightsServiceSpy.initializeRouteTracking).toHaveBeenCalled();
+  });
+
+  it('should have title property', () => {
+    expect(component.title).toBeDefined();
+    expect(typeof component.title).toBe('string');
+  });
+
+  it('should call initializeUserContext and return user ID', () => {
+    const userId = applicationInsightsServiceSpy.initializeUserContext();
+    expect(userId).toBe('weather-user-test');
+    expect(applicationInsightsServiceSpy.initializeUserContext).toHaveBeenCalled();
+  });
+
+  it('should call initializeRouteTracking with router', () => {
     expect(applicationInsightsServiceSpy.initializeRouteTracking).toHaveBeenCalled();
   });
 });

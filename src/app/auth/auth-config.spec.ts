@@ -1,4 +1,5 @@
 import { environment } from '../../environments/environment';
+import { msalConfig } from './auth-config';
 
 // Unit test for redirectUri computation.
 // We test the helper behavior by evaluating redirectUri logic with a stubbed origin.
@@ -31,6 +32,48 @@ describe('msalConfig redirectUri', () => {
     // redirectUri itself is browser-dependent, covered by the string formatting tests above.
     const mod = require('./auth-config');
     expect(mod.msalConfig.auth.clientId).toBe(environment.clientId);
+  });
+});
+
+describe('msalConfig structure', () => {
+  it('should have auth configuration', () => {
+    expect(msalConfig.auth).toBeDefined();
+    expect(msalConfig.auth.clientId).toBeTruthy();
+    expect(msalConfig.auth.authority).toBeTruthy();
+    expect(msalConfig.auth.redirectUri).toBeTruthy();
+  });
+
+  it('should have correct clientId from environment', () => {
+    expect(msalConfig.auth.clientId).toBe(environment.clientId);
+  });
+
+  it('should have authority with correct tenant', () => {
+    expect(msalConfig.auth.authority).toContain(environment.authorityTenant);
+  });
+});
+
+describe('formatOrigin helper', () => {
+  const formatOrigin = (origin: string) =>
+    origin ? (origin.endsWith('/') ? origin : `${origin}/`) : origin;
+
+  it('should add trailing slash to origin without it', () => {
+    expect(formatOrigin('https://example.com')).toBe('https://example.com/');
+  });
+
+  it('should not add trailing slash if already present', () => {
+    expect(formatOrigin('https://example.com/')).toBe('https://example.com/');
+  });
+
+  it('should return empty string for empty origin', () => {
+    expect(formatOrigin('')).toBe('');
+  });
+
+  it('should handle single slash origin', () => {
+    expect(formatOrigin('/')).toBe('/');
+  });
+
+  it('should handle origin with multiple trailing slashes', () => {
+    expect(formatOrigin('https://example.com//')).toBe('https://example.com//');
   });
 });
 

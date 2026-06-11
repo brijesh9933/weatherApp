@@ -12,7 +12,7 @@ describe('CommonService', () => {
   let applicationInsightsServiceSpy: jasmine.SpyObj<ApplicationInsightsService>;
 
   beforeEach(() => {
-    applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', ['trackException']);
+    applicationInsightsServiceSpy = jasmine.createSpyObj('ApplicationInsightsService', ['trackException', 'logException']);
 
     TestBed.configureTestingModule({
     imports: [],
@@ -89,5 +89,62 @@ describe('CommonService', () => {
     req.flush('server error', { status: 500, statusText: 'Server Error' });
   });
 
+  it('should handle 404 error', (done) => {
+    const city = 'InvalidCity12345';
+    const expectedUrl = `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=metric`;
+
+    service.getWeatherData(city).subscribe({
+      next: () => fail('expected request to fail'),
+      error: (error) => {
+        expect(error.status).toBe(404);
+        done();
+      }
+    });
+
+    const req = httpMock.expectOne(expectedUrl);
+    req.flush('Not found', { status: 404, statusText: 'Not Found' });
+  });
+
+  it('should handle network error', (done) => {
+    const city = 'London';
+    const expectedUrl = `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=metric`;
+
+    service.getWeatherData(city).subscribe({
+      next: () => fail('expected request to fail'),
+      error: (error) => {
+        expect(error.status).toBe(0);
+        done();
+      }
+    });
+
+    const req = httpMock.expectOne(expectedUrl);
+    req.error(new ProgressEvent('error'));
+  });
+
+  it('should use correct units parameter', () => {
+    const city = 'Paris';
+    const mockResponse = { main: { temp: 20 } };
+    const expectedUrl = `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=metric`;
+
+    service.getWeatherData(city).subscribe(data => {
+      expect(data).toEqual(mockResponse);
+    });
+
+    const req = httpMock.expectOne(expectedUrl);
+    req.flush(mockResponse);
+  });
+
+  it('should handle city names with spaces', () => {
+    const city = 'New York';
+    const mockResponse = { name: 'New York' };
+    const expectedUrl = `${environment.weatherApiUrl}/weather?q=${city}&appid=${environment.weatherApiKey}&units=metric`;
+
+    service.getWeatherData(city).subscribe(data => {
+      expect(data).toEqual(mockResponse);
+    });
+
+    const req = httpMock.expectOne(expectedUrl);
+    req.flush(mockResponse);
+  });
 });
 
