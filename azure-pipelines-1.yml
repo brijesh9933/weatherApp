@@ -222,8 +222,8 @@ stages:
               azureSubscription: weatherappres-acr-service-connection
               appName: weatherappweb
               resourceGroupName: WeatherApp_group
-              containers:
-                - imageName: weatherappres.azurecr.io/weather-app:latest
+              containers: |
+                weatherappres.azurecr.io/weather-app:latest
 
 
 
