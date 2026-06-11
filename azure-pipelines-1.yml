@@ -8,10 +8,12 @@ resources:
 
 variables:
   - group: weather-secrets
-
-  vmImageName: ubuntu-latest
-  dockerfilePath: $(Build.SourcesDirectory)/Dockerfile
-  tag: latest
+  - name: vmImageName
+    value: ubuntu-latest
+  - name: dockerfilePath
+    value: $(Build.SourcesDirectory)/Dockerfile
+  - name: tag
+    value: latest
 
 stages:
   - stage: Lint
