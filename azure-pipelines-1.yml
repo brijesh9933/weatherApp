@@ -11,10 +11,10 @@ variables:
 
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '11fe6c31-c94d-4fe1-8582-b137ca773419'
-  imageRepository: 'weatherapp'
+  imageRepository: 'weather-app'
   containerRegistry: 'weatherappres.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
+  tag: 'latest'
 
   # Optional ACR name used by the current pipeline login step
   acrName: 'weatherappres'
@@ -229,6 +229,29 @@ stages:
               containerRegistry: $(dockerRegistryServiceConnection)
               tags: |
                 $(tag)
+                latest
+
+  - stage: Deploy_AppService
+    displayName: Deploy to Azure App Service (continuous deployment)
+    dependsOn: DockerPush
+    condition: succeeded()
+    jobs:
+      - job: DeployJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureAppServiceContainer@1
+            displayName: Update App Service container image to latest
+            inputs:
+              azureSubscription: weatherappres-acr-service-connection
+              appName: weatherappweb
+              resourceGroupName: WeatherApp_group
+              containers:
+                - imageName: weatherappres.azurecr.io/weather-app:latest
+                  # If your Deployment Center already points to ACR, App Service will pull automatically
+                  # based on tag updates.
+                  # Otherwise, this task will also configure the container settings.
+
 
 
 
