@@ -12,8 +12,8 @@ variables:
     value: ubuntu-latest
   - name: dockerfilePath
     value: $(Build.SourcesDirectory)/Dockerfile
-  - name: tag
-    value: latest
+  - name: imageTag
+    value: $(Build.BuildId)
 
 stages:
   - stage: Lint
@@ -59,9 +59,14 @@ stages:
               set -euo pipefail
               export CHROME_BIN=/usr/bin/google-chrome
               npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
-              # Enforce minimum coverage (overall line coverage)
               node scripts/coverage-check.js coverage/weather/lcov.info
             displayName: Run Karma tests (headless)
+          - task: PublishCodeCoverageResults@1
+            displayName: Publish code coverage results
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/weather/cobertura-coverage.xml
+              reportDirectory: $(System.DefaultWorkingDirectory)/coverage
 
   - stage: Build_Dev
     displayName: Build (Dev)
@@ -194,7 +199,7 @@ stages:
               dockerfile: $(dockerfilePath)
               containerRegistry: $(dockerRegistryServiceConnection)
               tags: |
-                $(tag)
+                $(imageTag)
                 latest
 
   - stage: Deploy_AppService
@@ -217,7 +222,7 @@ stages:
                 az webapp config container set \
                   --name weatherappweb \
                   --resource-group WeatherApp_group \
-                  --docker-custom-image-name weatherappres.azurecr.io/weather-app:latest
+                  --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
 
 
 
