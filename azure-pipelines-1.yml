@@ -223,3 +223,42 @@ stages:
                   --name weatherappweb \
                   --resource-group WeatherApp_group \
                   --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
+
+  - stage: Deploy_DEV
+    displayName: Deploy to DEV environment
+    dependsOn: Deploy_AppService
+    condition: succeeded()
+    jobs:
+      - deployment: DeployDEV
+        environment: dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "DEV deployment completed"
+
+  - stage: Deploy_TEST
+    displayName: Deploy to TEST environment
+    dependsOn: Deploy_DEV
+    condition: succeeded()
+    jobs:
+      - deployment: DeployTEST
+        environment: test
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "TEST deployment completed"
+
+  - stage: Deploy_PROD
+    displayName: Deploy to PROD environment
+    dependsOn: Deploy_TEST
+    condition: succeeded()
+    jobs:
+      - deployment: DeployPROD
+        environment: prod
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "PROD deployment completed"
