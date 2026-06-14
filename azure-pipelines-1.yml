@@ -222,7 +222,7 @@ stages:
   - stage: DockerPush_DEV
     displayName: Build and push Docker image (DEV)
     dependsOn: Build_Dev
-    condition: succeeded() && eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
     jobs:
       - job: DockerPushDevJob
         displayName: Docker buildAndPush (DEV)
@@ -243,7 +243,7 @@ stages:
   - stage: DockerPush_TEST
     displayName: Build and push Docker image (TEST)
     dependsOn: Build_Test
-    condition: succeeded() && eq(variables['Build.SourceBranch'], 'refs/heads/test')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/test')
     jobs:
       - job: DockerPushTestJob
         displayName: Docker buildAndPush (TEST)
@@ -264,7 +264,7 @@ stages:
   - stage: DockerPush_PROD
     displayName: Build and push Docker image (PROD)
     dependsOn: Build_Prod
-    condition: succeeded() && eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: DockerPushProdJob
         displayName: Docker buildAndPush (PROD)
@@ -285,7 +285,7 @@ stages:
   - stage: Deploy_DEV
     displayName: Deploy DEV
     dependsOn: DockerPush_DEV
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
 
     jobs:
       - deployment: DeployDEV
@@ -309,7 +309,7 @@ stages:
   - stage: Deploy_TEST
     displayName: Deploy TEST
     dependsOn: DockerPush_TEST
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/test')
 
     jobs:
       - deployment: DeployTEST
@@ -333,7 +333,7 @@ stages:
   - stage: Deploy_PROD
     displayName: Deploy PROD
     dependsOn: DockerPush_PROD
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
 
     jobs:
       - deployment: DeployPROD
