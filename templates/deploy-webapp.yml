@@ -15,7 +15,7 @@ stages:
   - stage: ${{ parameters.stageName }}
     displayName: Deploy ${{ parameters.environmentName }}
     dependsOn: ${{ parameters.dependsOn }}
-    condition: eq(variables['Build.SourceBranch'], ${{ parameters.branchCondition }})
+    condition: eq(variables['Build.SourceBranch'], '${{ parameters.branchCondition }}')
     jobs:
       - deployment: Deploy${{ parameters.environmentName }}
         environment: ${{ parameters.environmentName }}
