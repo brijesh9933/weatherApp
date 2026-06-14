@@ -282,74 +282,30 @@ stages:
                 $(imageTag)
                 latest
 
-  - stage: Deploy_DEV
-    displayName: Deploy DEV
-    dependsOn: DockerPush_DEV
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+  - template: templates/deploy-webapp.yml
+    parameters:
+      stageName: Deploy_DEV
+      environmentName: dev
+      appServiceName: $(devAppService)
+      dependsOn:
+        - DockerPush_DEV
+      branchCondition: 'refs/heads/dev'
 
-    jobs:
-      - deployment: DeployDEV
-        environment: dev
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureCLI@2
-                  displayName: Deploy DEV
-                  inputs:
-                    azureSubscription: weatherappres-acr-service-connection
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az webapp config container set \
-                        --name $(devAppService) \
-                        --resource-group $(resourceGroup) \
-                        --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
+  - template: templates/deploy-webapp.yml
+    parameters:
+      stageName: Deploy_TEST
+      environmentName: test
+      appServiceName: $(testAppService)
+      dependsOn:
+        - DockerPush_TEST
+      branchCondition: 'refs/heads/test'
 
-  - stage: Deploy_TEST
-    displayName: Deploy TEST
-    dependsOn: DockerPush_TEST
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/test')
+  - template: templates/deploy-webapp.yml
+    parameters:
+      stageName: Deploy_PROD
+      environmentName: prod
+      appServiceName: $(prodAppService)
+      dependsOn:
+        - DockerPush_PROD
+      branchCondition: 'refs/heads/main'
 
-    jobs:
-      - deployment: DeployTEST
-        environment: test
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureCLI@2
-                  displayName: Deploy TEST
-                  inputs:
-                    azureSubscription: weatherappres-acr-service-connection
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az webapp config container set \
-                        --name $(testAppService) \
-                        --resource-group $(resourceGroup) \
-                        --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
-
-  - stage: Deploy_PROD
-    displayName: Deploy PROD
-    dependsOn: DockerPush_PROD
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-
-    jobs:
-      - deployment: DeployPROD
-        environment: prod
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureCLI@2
-                  displayName: Deploy PROD
-                  inputs:
-                    azureSubscription: weatherappres-acr-service-connection
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az webapp config container set \
-                        --name $(prodAppService) \
-                        --resource-group $(resourceGroup) \
-                        --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
