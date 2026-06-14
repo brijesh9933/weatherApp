@@ -1,5 +1,8 @@
 trigger:
+  - dev
+  - test
   - main
+
 
 pr: none
 
@@ -71,7 +74,8 @@ stages:
   - stage: Build_Dev
     displayName: Build (Dev)
     dependsOn: UnitTests
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+
     jobs:
       - job: BuildDev
         pool:
@@ -93,7 +97,8 @@ stages:
     displayName: SonarCloud analysis (gate)
     dependsOn:
       - Lint
-    condition: succeeded()
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/test'), eq(variables['Build.SourceBranch'], 'refs/heads/main')))
+
     jobs:
       - job: SonarCloud
         pool:
@@ -163,7 +168,8 @@ stages:
   - stage: Build_Prod
     displayName: Build (Production)
     dependsOn: Build_Dev
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
     jobs:
       - job: BuildProd
         pool:
@@ -184,7 +190,8 @@ stages:
   - stage: DockerPush
     displayName: Build and push Docker image
     dependsOn: Build_Prod
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
     jobs:
       - job: DockerPushJob
         displayName: Docker buildAndPush
@@ -227,7 +234,8 @@ stages:
   - stage: Deploy_DEV
     displayName: Deploy to DEV environment
     dependsOn: Deploy_AppService
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+
     jobs:
       - deployment: DeployDEV
         environment: dev
@@ -240,7 +248,9 @@ stages:
   - stage: Deploy_TEST
     displayName: Deploy to TEST environment
     dependsOn: Deploy_DEV
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+
+
     jobs:
       - deployment: DeployTEST
         environment: test
@@ -253,7 +263,8 @@ stages:
   - stage: Deploy_PROD
     displayName: Deploy to PROD environment
     dependsOn: Deploy_TEST
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
     jobs:
       - deployment: DeployPROD
         environment: prod
