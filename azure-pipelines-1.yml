@@ -10,6 +10,18 @@ pr: none
 variables:
   - group: weather-secrets
 
+  # Defaults to keep Azure DevOps YAML validation from failing when variable group values are missing.
+  # These can be overridden by the variable group `weather-secrets`.
+  - name: imageRepository
+    value: weatherapp/placeholder
+
+  - name: containerRegistry
+    value: weatherapp-acr-placeholder-service-connection
+
+  # Backward-compatibility alias in case the variable name is referenced elsewhere.
+  - name: dockerRegistryServiceConnection
+    value: $(containerRegistry)
+
   - name: vmImageName
     value: ubuntu-latest
 
@@ -30,6 +42,7 @@ variables:
 
   - name: prodAppService
     value: weatherappweb
+
 
 stages:
 
@@ -190,7 +203,7 @@ stages:
             command: buildAndPush
             repository: $(imageRepository)
             dockerfile: $(dockerfilePath)
-            containerRegistry: $(dockerRegistryServiceConnection)
+            containerRegistry: $(containerRegistry)
 
             tags: |
               $(imageTag)
