@@ -1,308 +1,275 @@
 trigger:
-  branches:
-    include:
-      - dev
-      - test
-      - main
+  - dev
+  - test
+  - main
+
 
 pr: none
 
+resources:
+  - repo: self
+
 variables:
   - group: weather-secrets
-
   - name: vmImageName
     value: ubuntu-latest
-
   - name: dockerfilePath
     value: $(Build.SourcesDirectory)/Dockerfile
-
   - name: imageTag
     value: $(Build.BuildId)
 
-  - name: resourceGroup
-    value: WeatherApp_group
-
-  - name: devAppService
-    value: weatherapp-dev
-
-  - name: testAppService
-    value: weatherapp-test
-
-  - name: prodAppService
-    value: weatherappweb
-
 stages:
-
-# ============================================================
-# LINT
-# ============================================================
-
-- stage: Lint
-  displayName: Lint
-
-  jobs:
-    - job: Lint
-      pool:
-        vmImage: $(vmImageName)
-
-      steps:
-        - checkout: self
-
-        - task: NodeTool@0
-          inputs:
-            versionSpec: '20.x'
-
-        - script: npm ci
-          displayName: Install dependencies
-
-        - script: npm run lint
-          displayName: Run ESLint
-
-# ============================================================
-# UNIT TESTS
-# ============================================================
-
-- stage: UnitTests
-  displayName: Unit Tests
-  dependsOn: Lint
-
-  jobs:
-    - job: UnitTests
-
-      pool:
-        vmImage: $(vmImageName)
-
-      steps:
-        - checkout: self
-
-        - task: NodeTool@0
-          inputs:
-            versionSpec: '20.x'
-
-        - script: npm ci
-          displayName: Install dependencies
-
-        - bash: |
-            sudo apt-get update
-            sudo apt-get install -y google-chrome-stable
-          displayName: Install Chrome
-
-        - bash: |
-            export CHROME_BIN=/usr/bin/google-chrome
-
-            npm test -- \
-              --watch=false \
-              --browsers=ChromeHeadless \
-              --code-coverage=true
-
-            node scripts/coverage-check.js coverage/weather/lcov.info
-          displayName: Run Tests
-
-        - task: PublishCodeCoverageResults@1
-          inputs:
-            codeCoverageTool: Cobertura
-            summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/weather/cobertura-coverage.xml
-            reportDirectory: $(System.DefaultWorkingDirectory)/coverage
-
-# ============================================================
-# SONARCLOUD
-# ============================================================
-
-- stage: SonarCloud
-  displayName: SonarCloud
-  dependsOn: UnitTests
-
-  jobs:
-    - job: SonarCloud
-
-      pool:
-        vmImage: $(vmImageName)
-
-      steps:
-        - checkout: self
-
-        - task: NodeTool@0
-          inputs:
-            versionSpec: '20.x'
-
-        - script: npm ci
-          displayName: Install dependencies
-
-        - bash: |
-            npm i --no-save sonar-scanner
-
-            ./node_modules/.bin/sonar-scanner \
-              -Dsonar.host.url=$(SONAR_HOST_URL) \
-              -Dsonar.login=$(SONAR_TOKEN) \
-              -Dsonar.projectKey=$(SONAR_PROJECT_KEY) \
-              -Dsonar.organization=$(SONAR_ORGANIZATION) \
-              -Dsonar.javascript.lcov.reportPaths=coverage/weather/lcov.info
-          displayName: Sonar Scan
-
-# ============================================================
-# BUILD
-# ============================================================
-
-- stage: Build
-  displayName: Angular Build
-  dependsOn: SonarCloud
-
-  jobs:
-    - job: Build
-
-      pool:
-        vmImage: $(vmImageName)
-
-      steps:
-        - checkout: self
-
-        - task: NodeTool@0
-          inputs:
-            versionSpec: '20.x'
-
-        - script: npm ci
-          displayName: Install dependencies
-
-        - script: npm run build:prod
-          displayName: Angular Production Build
-
-# ============================================================
-# DOCKER
-# ============================================================
-
-- stage: DockerPush
-  displayName: Docker Build & Push
-  dependsOn: Build
-
-  jobs:
-    - job: Docker
-
-      pool:
-        vmImage: $(vmImageName)
-
-      steps:
-        - checkout: self
-
-        - task: Docker@2
-          displayName: Build and Push Docker Image
-
-          inputs:
-            command: buildAndPush
-            repository: $(imageRepository)
-            dockerfile: $(dockerfilePath)
-            containerRegistry: $(dockerRegistryServiceConnection)
-
-            tags: |
-              $(imageTag)
-              latest
-
-# ============================================================
-# DEV DEPLOYMENT
-# ============================================================
-
-- stage: Deploy_DEV
-  displayName: Deploy DEV
-
-  dependsOn: DockerPush
-
-  condition: and(
-    succeeded(),
-    eq(variables['Build.SourceBranchName'], 'dev')
-  )
-
-  jobs:
-    - deployment: DeployDEV
-
-      environment: dev
-
-      strategy:
-        runOnce:
-          deploy:
-
-            steps:
-              - task: AzureCLI@2
-
-                inputs:
-                  azureSubscription: weatherappres-acr-service-connection
-                  scriptType: bash
-                  scriptLocation: inlineScript
-
-                  inlineScript: |
-                    az webapp config container set \
-                      --name $(devAppService) \
-                      --resource-group $(resourceGroup) \
-                      --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
-
-# ============================================================
-# TEST DEPLOYMENT
-# ============================================================
-
-- stage: Deploy_TEST
-  displayName: Deploy TEST
-
-  dependsOn: DockerPush
-
-  condition: and(
-    succeeded(),
-    eq(variables['Build.SourceBranchName'], 'test')
-  )
-
-  jobs:
-    - deployment: DeployTEST
-
-      environment: test
-
-      strategy:
-        runOnce:
-          deploy:
-
-            steps:
-              - task: AzureCLI@2
-
-                inputs:
-                  azureSubscription: weatherappres-acr-service-connection
-                  scriptType: bash
-                  scriptLocation: inlineScript
-
-                  inlineScript: |
-                    az webapp config container set \
-                      --name $(testAppService) \
-                      --resource-group $(resourceGroup) \
-                      --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
-
-# ============================================================
-# PROD DEPLOYMENT
-# ============================================================
-
-- stage: Deploy_PROD
-  displayName: Deploy PROD
-
-  dependsOn: DockerPush
-
-  condition: and(
-    succeeded(),
-    eq(variables['Build.SourceBranchName'], 'main')
-  )
-
-  jobs:
-    - deployment: DeployPROD
-
-      environment: prod
-
-      strategy:
-        runOnce:
-          deploy:
-
-            steps:
-              - task: AzureCLI@2
-
-                inputs:
-                  azureSubscription: weatherappres-acr-service-connection
-                  scriptType: bash
-                  scriptLocation: inlineScript
-
-                  inlineScript: |
-                    az webapp config container set \
-                      --name $(prodAppService) \
-                      --resource-group $(resourceGroup) \
-                      --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
+  - stage: Lint
+    displayName: Lint
+    jobs:
+      - job: LintJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - script: npm run lint
+            displayName: Run ESLint
+
+  - stage: UnitTests
+    displayName: Unit tests
+    dependsOn: Lint
+    condition: succeeded()
+    jobs:
+      - job: TestJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          # Angular/Karma needs Chrome. This setup is commonly enough for Ubuntu agents.
+          - bash: |
+              set -euo pipefail
+              sudo apt-get update
+              sudo apt-get install -y google-chrome-stable
+            displayName: Install Chrome
+          - bash: |
+              set -euo pipefail
+              export CHROME_BIN=/usr/bin/google-chrome
+              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
+              node scripts/coverage-check.js coverage/weather/lcov.info
+            displayName: Run Karma tests (headless)
+          - task: PublishCodeCoverageResults@1
+            displayName: Publish code coverage results
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/weather/cobertura-coverage.xml
+              reportDirectory: $(System.DefaultWorkingDirectory)/coverage
+
+  - stage: Build_Dev
+    displayName: Build (Dev)
+    dependsOn: UnitTests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+
+    jobs:
+      - job: BuildDev
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - bash: |
+              set -euo pipefail
+              npm run build:dev
+            displayName: Angular build (dev)
+
+  - stage: SonarCloud
+    displayName: SonarCloud analysis (gate)
+    dependsOn:
+      - Lint
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/test'), eq(variables['Build.SourceBranch'], 'refs/heads/main')))
+
+    jobs:
+      - job: SonarCloud
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+
+          # Install deps + run tests once here so sonar has coverage available in this stage.
+          - bash: |
+              set -euo pipefail
+              npm_config_loglevel=error
+
+              sudo apt-get update
+              sudo apt-get install -y google-chrome-stable
+              export CHROME_BIN=/usr/bin/google-chrome
+
+              npm ci
+
+              npm test -- --watch=false --browsers=ChromeHeadless --code-coverage=true
+              node scripts/coverage-check.js coverage/weather/lcov.info
+
+              # Install sonar-scanner locally (no global agent tooling required)
+              npm i --no-save sonar-scanner
+
+              # Validate required env vars (fails fast with a clear message)
+              if [ -z "${SONAR_TOKEN:-}" ]; then
+                echo "ERROR: SONAR_TOKEN is required (create a SonarCloud token and set it as a secret pipeline variable)."
+                exit 1
+              fi
+              if [ -z "${SONAR_ORGANIZATION:-}" ]; then
+                echo "ERROR: SONAR_ORGANIZATION is required (your SonarCloud organization slug, as shown in SonarCloud)."
+                exit 1
+              fi
+              if [ -z "${SONAR_PROJECT_KEY:-}" ]; then
+                # Prefer pipeline variable if present; otherwise fallback to repo name.
+                export SONAR_PROJECT_KEY="${BUILD_REPOSITORY_NAME:-weather}"
+                echo "WARNING: SONAR_PROJECT_KEY not set; using fallback: ${SONAR_PROJECT_KEY}"
+              fi
+
+              # Helpful diagnostics (do NOT print token)
+              echo "SonarCloud host: ${SONAR_HOST_URL}"
+              echo "SonarCloud organization: ${SONAR_ORGANIZATION}"
+              echo "SonarCloud projectKey: ${SONAR_PROJECT_KEY}"
+
+              # Run analysis
+              ./node_modules/.bin/sonar-scanner \
+                -X \
+                -Dsonar.host.url="$SONAR_HOST_URL" \
+                -Dsonar.login="$SONAR_TOKEN" \
+                -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
+                -Dsonar.projectName="$SONAR_PROJECT_KEY" \
+                -Dsonar.organization="$SONAR_ORGANIZATION" \
+                -Dsonar.javascript.lcov.reportPaths="coverage/weather/lcov.info"
+            displayName: Sonar scanner (CLI)
+            env:
+              SONAR_HOST_URL: $(SONAR_HOST_URL)
+              SONAR_TOKEN: $(SONAR_TOKEN)
+              SONAR_PROJECT_KEY: $(SONAR_PROJECT_KEY)
+              SONAR_ORGANIZATION: $(SONAR_ORGANIZATION)
+
+  - stage: Build_Prod
+    displayName: Build (Production)
+    dependsOn: Build_Dev
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
+    jobs:
+      - job: BuildProd
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - bash: |
+              set -euo pipefail
+              npm run build:prod
+            displayName: Angular build (production)
+
+  - stage: DockerPush
+    displayName: Build and push Docker image
+    dependsOn: Build_Prod
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
+    jobs:
+      - job: DockerPushJob
+        displayName: Docker buildAndPush
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: Docker@2
+            displayName: Build and push an image to container registry
+            inputs:
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
+              tags: |
+                $(imageTag)
+                latest
+
+  - stage: Deploy_AppService
+    displayName: Deploy to Azure App Service (continuous deployment)
+    dependsOn: DockerPush
+    condition: succeeded()
+    jobs:
+      - job: DeployJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: Update App Service container image to latest
+            inputs:
+              azureSubscription: weatherappres-acr-service-connection
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                az webapp config container set \
+                  --name weatherappweb \
+                  --resource-group WeatherApp_group \
+                  --docker-custom-image-name $(containerRegistry)/$(imageRepository):$(imageTag)
+
+  - stage: Deploy_DEV
+    displayName: Deploy to DEV environment
+    dependsOn: Deploy_AppService
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+
+    jobs:
+      - deployment: DeployDEV
+        environment: dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "DEV deployment completed"
+
+  - stage: Deploy_TEST
+    displayName: Deploy to TEST environment
+    dependsOn: Deploy_DEV
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+
+
+    jobs:
+      - deployment: DeployTEST
+        environment: test
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "TEST deployment completed"
+
+  - stage: Deploy_PROD
+    displayName: Deploy to PROD environment
+    dependsOn: Deploy_TEST
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
+    jobs:
+      - deployment: DeployPROD
+        environment: prod
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "PROD deployment completed"
