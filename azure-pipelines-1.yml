@@ -219,13 +219,55 @@ stages:
               npm run build:prod
             displayName: Angular build (production)
 
-  - stage: DockerPush
-    displayName: Build and push Docker image
-    dependsOn: Build_Prod
-    condition: succeeded()
+  - stage: DockerPush_DEV
+    displayName: Build and push Docker image (DEV)
+    dependsOn: Build_Dev
+    condition: succeeded() && eq(variables['Build.SourceBranch'], 'refs/heads/dev')
     jobs:
-      - job: DockerPushJob
-        displayName: Docker buildAndPush
+      - job: DockerPushDevJob
+        displayName: Docker buildAndPush (DEV)
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: Docker@2
+            displayName: Build and push an image to container registry
+            inputs:
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
+              tags: |
+                $(imageTag)
+                dev
+
+  - stage: DockerPush_TEST
+    displayName: Build and push Docker image (TEST)
+    dependsOn: Build_Test
+    condition: succeeded() && eq(variables['Build.SourceBranch'], 'refs/heads/test')
+    jobs:
+      - job: DockerPushTestJob
+        displayName: Docker buildAndPush (TEST)
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: Docker@2
+            displayName: Build and push an image to container registry
+            inputs:
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
+              tags: |
+                $(imageTag)
+                test
+
+  - stage: DockerPush_PROD
+    displayName: Build and push Docker image (PROD)
+    dependsOn: Build_Prod
+    condition: succeeded() && eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    jobs:
+      - job: DockerPushProdJob
+        displayName: Docker buildAndPush (PROD)
         pool:
           vmImage: $(vmImageName)
         steps:
@@ -242,7 +284,7 @@ stages:
 
   - stage: Deploy_DEV
     displayName: Deploy DEV
-    dependsOn: DockerPush
+    dependsOn: DockerPush_DEV
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
 
     jobs:
@@ -266,7 +308,7 @@ stages:
 
   - stage: Deploy_TEST
     displayName: Deploy TEST
-    dependsOn: DockerPush
+    dependsOn: DockerPush_TEST
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
 
     jobs:
@@ -290,7 +332,7 @@ stages:
 
   - stage: Deploy_PROD
     displayName: Deploy PROD
-    dependsOn: DockerPush
+    dependsOn: DockerPush_PROD
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
     jobs:
