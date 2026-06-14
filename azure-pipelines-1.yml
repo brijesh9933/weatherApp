@@ -86,7 +86,7 @@ stages:
   - stage: Build_Dev
     displayName: Build (Dev)
     dependsOn: UnitTests
-    condition: succeeded()
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
     jobs:
       - job: BuildDev
         pool:
@@ -103,6 +103,27 @@ stages:
               set -euo pipefail
               npm run build:dev
             displayName: Angular build (dev)
+
+  - stage: Build_Test
+    displayName: Build (Test)
+    dependsOn: UnitTests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+    jobs:
+      - job: BuildTest
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: NodeTool@0
+            displayName: Use Node.js
+            inputs:
+              versionSpec: '20.x'
+          - script: npm ci
+            displayName: Install dependencies
+          - bash: |
+              set -euo pipefail
+              npm run build:test
+            displayName: Angular build (test)
 
   - stage: SonarCloud
     displayName: SonarCloud analysis (gate)
@@ -177,8 +198,10 @@ stages:
 
   - stage: Build_Prod
     displayName: Build (Production)
-    dependsOn: Build_Dev
-    condition: succeeded()
+    dependsOn:
+      - Build_Dev
+      - Build_Test
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: BuildProd
         pool:
