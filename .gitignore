@@ -40,3 +40,12 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Terraform (industry standard)
+# - Never commit Terraform state or local working artifacts
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform/
+terraform/crash.log
+terraform/*.tfvars
+
