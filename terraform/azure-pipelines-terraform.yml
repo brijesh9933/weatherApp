@@ -24,7 +24,8 @@ stages:
 
     - bash: |
         set -euo pipefail
-        TERRAFORM_VERSION="1.9.8"
+        TERRAFORM_VERSION="1.15.6"
+
         OS="linux"
         ARCH="amd64"
         echo "Installing Terraform ${TERRAFORM_VERSION}..."
@@ -80,9 +81,10 @@ stages:
 
           terraform version
 
-          # Avoid AzureRM attempting to authenticate via Azure CLI when the pipeline is using
-          # a service principal behind the scenes.
-          unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID || true
+          # Force Terraform/AzureRM to use Azure CLI auth from the AzureCLI@2 task.
+          unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID TF_VAR_client_id TF_VAR_client_secret TF_VAR_tenant_id TF_VAR_subscription_id || true
+          export ARM_USE_AZURECLI_AUTH=true
+          export ARM_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-}" || true
 
           terraform init -input=false
 
@@ -95,11 +97,10 @@ stages:
         inlineScript: |
           cd terraform
 
-          # Keep AzureRM auth in AzureCLI mode only.
-          unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID || true
+          unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID TF_VAR_client_id TF_VAR_client_secret TF_VAR_tenant_id TF_VAR_subscription_id || true
+          export ARM_USE_AZURECLI_AUTH=true
 
           terraform validate
-
 
     - task: AzureCLI@2
       displayName: 'Terraform Plan'
@@ -114,3 +115,4 @@ stages:
 
     - publish: terraform/tfplan
       artifact: tfplan
+
