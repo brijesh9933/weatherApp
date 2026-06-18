@@ -1,107 +1,76 @@
 trigger:
-branches:
-include:
-- dev
-- test
-- main
+  branches:
+    include:
+      - dev
+      - test
+      - main
 
 pr: none
 
 pool:
-vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest'
 
 stages:
 
-* stage: Terraform_Plan
+- stage: Terraform_Plan
   displayName: 'Terraform Plan'
 
   jobs:
-
-  * job: TerraformPlan
-    displayName: 'Terraform Plan'
+  - job: TerraformPlan
 
     steps:
 
-    * checkout: self
+    - checkout: self
 
-    * bash: |
-      set -euo pipefail
+    - bash: |
+        set -euo pipefail
+        TERRAFORM_VERSION="1.9.8"
+        OS="linux"
+        ARCH="amd64"
+        echo "Installing Terraform ${TERRAFORM_VERSION}..."
+        curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_${OS}_${ARCH}.zip"
+        sudo rm -rf /tmp/terraform-install && mkdir -p /tmp/terraform-install
+        unzip -q terraform.zip -d /tmp/terraform-install
+        sudo mv /tmp/terraform-install/terraform /usr/local/bin/terraform
+        terraform version
+      displayName: 'Install Terraform (script)'
 
-      TERRAFORM_VERSION="1.9.8"
-      OS="linux"
-      ARCH="amd64"
+- task: AzureCLI@2
+  displayName: 'Terraform Init'
+  inputs:
+    azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+    addSpnToEnvironment: true
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
 
-      echo "Installing Terraform ${TERRAFORM_VERSION}..."
-
-      curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_${OS}_${ARCH}.zip"
-
-      sudo rm -rf /tmp/terraform-install
-      mkdir -p /tmp/terraform-install
-
-      unzip -q terraform.zip -d /tmp/terraform-install
-
-      sudo mv /tmp/terraform-install/terraform /usr/local/bin/terraform
-
-      terraform version
-      displayName: 'Install Terraform'
-
-    * task: AzureCLI@2
-      displayName: 'Terraform Init'
-      inputs:
-      azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-      addSpnToEnvironment: true
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
       export ARM_CLIENT_ID=$servicePrincipalId
       export ARM_CLIENT_SECRET=$servicePrincipalKey
       export ARM_TENANT_ID=$tenantId
       export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-      ```
       cd terraform
 
       terraform init -input=false
-      ```
 
-    * task: AzureCLI@2
-      displayName: 'Terraform Validate'
-      inputs:
-      azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-      addSpnToEnvironment: true
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
+
+- task: AzureCLI@2
+  displayName: 'Terraform Plan'
+  inputs:
+    azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+    addSpnToEnvironment: true
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+
       export ARM_CLIENT_ID=$servicePrincipalId
       export ARM_CLIENT_SECRET=$servicePrincipalKey
       export ARM_TENANT_ID=$tenantId
       export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-      ```
-      cd terraform
-
-      terraform validate
-      ```
-
-    * task: AzureCLI@2
-      displayName: 'Terraform Plan'
-      inputs:
-      azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-      addSpnToEnvironment: true
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-      export ARM_CLIENT_ID=$servicePrincipalId
-      export ARM_CLIENT_SECRET=$servicePrincipalKey
-      export ARM_TENANT_ID=$tenantId
-      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-
-      ```
       cd terraform
 
       terraform plan -input=false -out=tfplan
-      ```
 
-    * publish: terraform/tfplan
+    - publish: terraform/tfplan
       artifact: tfplan
-      displayName: 'Publish Terraform Plan'
