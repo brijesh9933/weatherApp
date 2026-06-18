@@ -36,6 +36,40 @@ stages:
       displayName: 'Install Terraform (script)'
 
     - task: AzureCLI@2
+      displayName: 'Bootstrap Terraform backend (azurerm)'
+      inputs:
+        azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          set -euo pipefail
+
+          BACKEND_RG="WeatherApp_group_tf"
+          BACKEND_STORAGE_ACCOUNT="weatherapptfstate01"
+          BACKEND_CONTAINER="tfstate"
+
+          echo "Ensuring backend RG exists: ${BACKEND_RG}"
+          az group show --name "${BACKEND_RG}" >/dev/null 2>&1 || az group create --name "${BACKEND_RG}" --location "Central India" >/dev/null
+
+          echo "Ensuring backend storage account exists: ${BACKEND_STORAGE_ACCOUNT}"
+          az storage account show --name "${BACKEND_STORAGE_ACCOUNT}" --resource-group "${BACKEND_RG}" >/dev/null 2>&1 || \
+            az storage account create \
+              --name "${BACKEND_STORAGE_ACCOUNT}" \
+              --resource-group "${BACKEND_RG}" \
+              --location "Central India" \
+              --sku "Standard_LRS" \
+              --kind "StorageV2" \
+              >/dev/null
+
+          echo "Ensuring backend container exists: ${BACKEND_CONTAINER}"
+          az storage container show --name "${BACKEND_CONTAINER}" --account-name "${BACKEND_STORAGE_ACCOUNT}" --auth-mode login >/dev/null 2>&1 || \
+            az storage container create \
+              --name "${BACKEND_CONTAINER}" \
+              --account-name "${BACKEND_STORAGE_ACCOUNT}" \
+              --auth-mode login \
+              --public-access off >/dev/null
+
+    - task: AzureCLI@2
       displayName: 'Terraform Init'
       inputs:
         azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
@@ -51,7 +85,6 @@ stages:
           unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID || true
 
           terraform init -input=false
-
 
     - task: AzureCLI@2
       displayName: 'Terraform Validate'
