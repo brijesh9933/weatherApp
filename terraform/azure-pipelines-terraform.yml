@@ -22,10 +22,18 @@ stages:
 
     - checkout: self
 
-    - task: TerraformInstaller@1
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: '1.9.8'
+    - bash: |
+        set -euo pipefail
+        TERRAFORM_VERSION="1.9.8"
+        OS="linux"
+        ARCH="amd64"
+        echo "Installing Terraform ${TERRAFORM_VERSION}..."
+        curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_${OS}_${ARCH}.zip"
+        sudo rm -rf /tmp/terraform-install && mkdir -p /tmp/terraform-install
+        unzip -q terraform.zip -d /tmp/terraform-install
+        sudo mv /tmp/terraform-install/terraform /usr/local/bin/terraform
+        terraform version
+      displayName: 'Install Terraform (script)'
 
     - task: AzureCLI@2
       displayName: 'Terraform Init'
