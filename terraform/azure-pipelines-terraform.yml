@@ -1,83 +1,104 @@
 trigger:
-  branches:
-    include:
-      - dev
-      - test
-      - main
+branches:
+include:
+- dev
+- test
+- main
 
 pr: none
 
 pool:
-  vmImage: 'ubuntu-latest'
+vmImage: 'ubuntu-latest'
 
 stages:
 
-- stage: Terraform_Plan
+* stage: Terraform_Plan
   displayName: 'Terraform Plan'
 
   jobs:
-  - job: TerraformPlan
+
+  * job: TerraformPlan
+    displayName: 'Terraform Plan'
 
     steps:
 
-    - checkout: self
+    * checkout: self
 
-    - bash: |
-        set -euo pipefail
-        TERRAFORM_VERSION="1.9.8"
-        OS="linux"
-        ARCH="amd64"
-        echo "Installing Terraform ${TERRAFORM_VERSION}..."
-        curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_${OS}_${ARCH}.zip"
-        sudo rm -rf /tmp/terraform-install && mkdir -p /tmp/terraform-install
-        unzip -q terraform.zip -d /tmp/terraform-install
-        sudo mv /tmp/terraform-install/terraform /usr/local/bin/terraform
-        terraform version
-      displayName: 'Install Terraform (script)'
+    * bash: |
+      set -e
 
-    - task: AzureCLI@2
+      TERRAFORM_VERSION="1.9.8"
+
+      curl -sSL -o terraform.zip 
+      https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+      unzip -o terraform.zip
+
+      sudo mv terraform /usr/local/bin/terraform
+
+      terraform version
+      displayName: 'Install Terraform'
+
+    * task: AzureCLI@2
       displayName: 'Terraform Init'
       inputs:
-        azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
-          cd terraform
+      azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+      addSpnToEnvironment: true
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
 
-          terraform version
+      ```
+      export ARM_CLIENT_ID=$servicePrincipalId
+      export ARM_CLIENT_SECRET=$servicePrincipalKey
+      export ARM_TENANT_ID=$tenantId
+      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-          # Avoid AzureRM attempting to authenticate via Azure CLI when the pipeline is using
-          # a service principal behind the scenes.
-          unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID || true
+      cd terraform
 
-          terraform init -input=false
+      terraform init -input=false
+      ```
 
-
-    - task: AzureCLI@2
+    * task: AzureCLI@2
       displayName: 'Terraform Validate'
       inputs:
-        azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
-          cd terraform
+      azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+      addSpnToEnvironment: true
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
 
-          # Keep AzureRM auth in AzureCLI mode only.
-          unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID || true
+      ```
+      export ARM_CLIENT_ID=$servicePrincipalId
+      export ARM_CLIENT_SECRET=$servicePrincipalKey
+      export ARM_TENANT_ID=$tenantId
+      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-          terraform validate
+      cd terraform
 
+      terraform validate
+      ```
 
-    - task: AzureCLI@2
+    * task: AzureCLI@2
       displayName: 'Terraform Plan'
       inputs:
-        azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
-          cd terraform
+      azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+      addSpnToEnvironment: true
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
 
-          terraform plan -input=false -out=tfplan
+      ```
+      export ARM_CLIENT_ID=$servicePrincipalId
+      export ARM_CLIENT_SECRET=$servicePrincipalKey
+      export ARM_TENANT_ID=$tenantId
+      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-    - publish: terraform/tfplan
+      cd terraform
+
+      terraform plan -input=false -out=tfplan
+      ```
+
+    * publish: terraform/tfplan
       artifact: tfplan
+      displayName: 'Publish Terraform Plan'
