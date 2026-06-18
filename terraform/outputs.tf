@@ -1,15 +1,15 @@
 output "resource_group_name" {
-  value = azurerm_resource_group.weather.name
+  value = module.resource_group.name
 }
 
 output "acr_name" {
-  value = azurerm_container_registry.acr.name
+  value = module.acr.name
 }
 
 output "acr_login_server" {
-  value = azurerm_container_registry.acr.login_server
+  value = module.acr.login_server
 }
 
 output "webapp_url" {
-  value = "https://${azurerm_linux_web_app.weather_app.default_hostname}"
+  value = "https://${module.webapp.webapp_url}"
 }
