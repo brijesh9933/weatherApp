@@ -159,7 +159,12 @@ stages:
 
           # Downloaded artifact is placed under the pipeline workspace.
           # We standardize it so terraform apply can always reference ./tfplan.
-          TFPLAN_PATH="${PIPELINE_WORKSPACE:-$SYSTEM_DEFAULTWORKINGDIRECTORY}/tfplan/tfplan"
+          TFPLAN_PATH="${PIPELINE_WORKSPACE:-$SYSTEM_DEFAULTWORKINGDIRECTORY}/tfplan/tfplan" 
+          echo "CWD before cp: $(pwd)" 
+          ls -la 
+          cp -f "${TFPLAN_PATH}" ./tfplan 
+          echo "CWD after cp: $(pwd)" 
+          ls -la ./tfplan
           echo "Looking for tfplan at: ${TFPLAN_PATH}"
           ls -la "$(dirname "${TFPLAN_PATH}")" || true
           test -f "${TFPLAN_PATH}"
