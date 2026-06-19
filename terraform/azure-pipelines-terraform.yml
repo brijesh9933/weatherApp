@@ -12,53 +12,13 @@ pool:
 
 stages:
 
-- task: AzureCLI@2
-  displayName: 'Terraform Plan'
-  inputs:
-    azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
-    scriptType: bash
-    scriptLocation: inlineScript
-    inlineScript: |
-      set -euo pipefail
-
-      cd terraform
-
-      BRANCH="$(Build.SourceBranch)"
-
-      echo "Current Branch: ${BRANCH}"
-
-      if [ "${BRANCH}" = "refs/heads/dev" ]; then
-
-        terraform workspace select dev || terraform workspace new dev
-
-        terraform plan \
-          -input=false \
-          -var-file="dev.tfvars" \
-          -out=tfplan
-
-      elif [ "${BRANCH}" = "refs/heads/test" ]; then
-
-        terraform workspace select test || terraform workspace new test
-
-        terraform plan \
-          -input=false \
-          -var-file="test.tfvars" \
-          -out=tfplan
-
-      else
-
-        terraform workspace select prod || terraform workspace new prod
-
-        terraform plan \
-          -input=false \
-          -var-file="prod.tfvars" \
-          -out=tfplan
-
-      fi
+- stage: Terraform_Plan
   displayName: 'Terraform Plan'
 
   jobs:
   - job: TerraformPlan
+    displayName: 'Terraform Plan'
+
     steps:
 
     - checkout: self
@@ -86,7 +46,7 @@ stages:
       displayName: 'Install Terraform'
 
     - task: AzureCLI@2
-      displayName: 'Bootstrap Terraform backend'
+      displayName: 'Bootstrap Terraform Backend'
       inputs:
         azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
         scriptType: bash
@@ -99,7 +59,9 @@ stages:
           BACKEND_CONTAINER="tfstate"
 
           az group show --name "${BACKEND_RG}" >/dev/null 2>&1 || \
-          az group create --name "${BACKEND_RG}" --location "Central India" >/dev/null
+          az group create \
+            --name "${BACKEND_RG}" \
+            --location "Central India" >/dev/null
 
           az storage account show \
             --name "${BACKEND_STORAGE_ACCOUNT}" \
@@ -155,9 +117,42 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
+          set -euo pipefail
+
           cd terraform
 
-          terraform plan -input=false -out=tfplan
+          BRANCH="$(Build.SourceBranch)"
+
+          echo "Current Branch: ${BRANCH}"
+
+          if [ "${BRANCH}" = "refs/heads/dev" ]; then
+
+            terraform workspace select dev || terraform workspace new dev
+
+            terraform plan \
+              -input=false \
+              -var-file="dev.tfvars" \
+              -out=tfplan
+
+          elif [ "${BRANCH}" = "refs/heads/test" ]; then
+
+            terraform workspace select test || terraform workspace new test
+
+            terraform plan \
+              -input=false \
+              -var-file="test.tfvars" \
+              -out=tfplan
+
+          else
+
+            terraform workspace select prod || terraform workspace new prod
+
+            terraform plan \
+              -input=false \
+              -var-file="prod.tfvars" \
+              -out=tfplan
+
+          fi
 
     - publish: terraform/tfplan
       artifact: tfplan
@@ -169,6 +164,8 @@ stages:
 
   jobs:
   - job: TerraformApply
+    displayName: 'Terraform Apply'
+
     steps:
 
     - checkout: self
