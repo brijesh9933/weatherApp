@@ -155,6 +155,17 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
+          set -euo pipefail
+
+          # Downloaded artifact is placed under the pipeline workspace.
+          # We standardize it so terraform apply can always reference ./tfplan.
+          TFPLAN_PATH="${PIPELINE_WORKSPACE:-$SYSTEM_DEFAULTWORKINGDIRECTORY}/tfplan/tfplan"
+          echo "Looking for tfplan at: ${TFPLAN_PATH}"
+          ls -la "$(dirname "${TFPLAN_PATH}")" || true
+          test -f "${TFPLAN_PATH}"
+
+          cp -f "${TFPLAN_PATH}" ./tfplan
+
           cd terraform
 
           terraform init -input=false
