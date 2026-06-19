@@ -245,27 +245,5 @@ stages:
 
           # IMPORTANT: apply the exact plan produced in the previous stage
           # tfplan artifact was produced by Terraform_Plan stage
-          terraform apply -auto-approve tfplan
-  displayName: 'Terraform Apply'
-  dependsOn: Terraform_Plan
-  condition: succeeded()
+          terraform apply -auto-approve
 
-  jobs:
-  - job: TerraformApply
-    displayName: 'Terraform Apply'
-
-    steps:
-
-    - checkout: self
-
-    - download: current
-      artifact: tfplan
-
-    - bash: |
-        echo "===== PIPELINE WORKSPACE ====="
-        find "$PIPELINE_WORKSPACE" -type f | sort
-
-        echo ""
-        echo "===== SOURCES DIRECTORY ====="
-        find "$BUILD_SOURCESDIRECTORY" -type f | sort
-      displayName: 'Debug Artifact Location'
