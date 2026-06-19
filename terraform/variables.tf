@@ -1,11 +1,19 @@
-variable "location" {
-  default = "Central India"
-}
-
 variable "resource_group_name" {
-  default = "WeatherApp_group_tf"
+  type = string
 }
 
 variable "acr_name" {
-  default = "weatherapprestf"
+  type = string
+}
+
+variable "location" {
+  type = string
+}
+
+variable "app_service_name" {
+  type = string
+}
+
+variable "app_service_plan" {
+  type = string
 }

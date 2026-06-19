@@ -19,8 +19,9 @@ module "webapp" {
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
 
-  plan_name   = "weather-plan-tf"
-  webapp_name = "weatherapp-tf-demo"
+  app_service_name = var.app_service_name
+  app_service_plan = var.app_service_plan
+
 
   acr_login_server = "https://${data.azurerm_container_registry.existing_acr.login_server}"
   acr_scope        = data.azurerm_container_registry.existing_acr.id

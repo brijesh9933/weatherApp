@@ -1,5 +1,5 @@
 resource "azurerm_service_plan" "this" {
-  name                = var.plan_name
+  name                = var.app_service_plan
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -8,7 +8,7 @@ resource "azurerm_service_plan" "this" {
 }
 
 resource "azurerm_linux_web_app" "this" {
-  name                = var.webapp_name
+  name                = var.app_service_name
   resource_group_name = var.resource_group_name
   location            = var.location
 

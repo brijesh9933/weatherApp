@@ -11,5 +11,6 @@ output "acr_login_server" {
 }
 
 output "webapp_url" {
-  value = "https://${module.webapp.webapp_url}"
+  value = module.webapp.webapp_url
 }
+
