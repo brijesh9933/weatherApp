@@ -116,3 +116,47 @@ stages:
     - publish: terraform/tfplan
       artifact: tfplan
 
+- stage: Terraform_Apply
+  displayName: 'Terraform Apply'
+  dependsOn: Terraform_Plan
+  condition: succeeded()
+
+  jobs:
+  - job: TerraformApply
+
+    steps:
+
+    - checkout: self
+
+    - download: current
+      artifact: tfplan
+
+    - bash: |
+        set -euo pipefail
+
+        TERRAFORM_VERSION="1.15.6"
+
+        curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+
+        sudo rm -rf /tmp/terraform-install
+        mkdir -p /tmp/terraform-install
+
+        unzip -q terraform.zip -d /tmp/terraform-install
+
+        sudo mv /tmp/terraform-install/terraform /usr/local/bin/terraform
+
+        terraform version
+      displayName: 'Install Terraform'
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Apply'
+      inputs:
+        azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          cd terraform
+
+          terraform init -input=false
+
+          terraform apply -input=false -auto-approve tfplan
