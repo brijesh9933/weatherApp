@@ -222,28 +222,32 @@ stages:
 
           BRANCH="$(Build.SourceBranch)"
 
-          case "${BRANCH}" in
-            refs/heads/dev)
-              WORKSPACE="dev"
-              ;;
-            refs/heads/test)
-              WORKSPACE="test"
-              ;;
-            refs/heads/main)
-              WORKSPACE="prod"
-              ;;
-            *)
-              echo "Unsupported branch: ${BRANCH}"
-              exit 1
-              ;;
-          esac
+          if [ "${BRANCH}" = "refs/heads/dev" ]; then
+            WORKSPACE="dev"
+            TF_VAR_FILE="dev.tfvars"
+
+          elif [ "${BRANCH}" = "refs/heads/test" ]; then
+            WORKSPACE="test"
+            TF_VAR_FILE="test.tfvars"
+
+          elif [ "${BRANCH}" = "refs/heads/main" ]; then
+            WORKSPACE="prod"
+            TF_VAR_FILE="prod.tfvars"
+
+          else
+            echo "Unsupported branch: ${BRANCH}"
+            exit 1
+          fi
+
+          echo "Workspace: ${WORKSPACE}"
+          echo "TFVars: ${TF_VAR_FILE}"
 
           terraform workspace select "${WORKSPACE}"
 
-          echo "Current Workspace:"
           terraform workspace show
 
-          # IMPORTANT: apply the exact plan produced in the previous stage
-          # tfplan artifact was produced by Terraform_Plan stage
-          terraform apply -auto-approve
+          terraform apply \
+            -input=false \
+            -auto-approve \
+            -var-file="${TF_VAR_FILE}"
 
