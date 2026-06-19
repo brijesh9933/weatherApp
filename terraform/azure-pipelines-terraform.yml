@@ -188,6 +188,80 @@ stages:
       artifact: tfplan
 
     - bash: |
+        set -euo pipefail
+
+        TERRAFORM_VERSION="1.15.6"
+
+        curl -sSL -o terraform.zip \
+          "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+
+        sudo rm -rf /tmp/terraform-install
+        mkdir -p /tmp/terraform-install
+
+        unzip -q terraform.zip -d /tmp/terraform-install
+
+        sudo mv /tmp/terraform-install/terraform /usr/local/bin/terraform
+
+        terraform version
+      displayName: 'Install Terraform'
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Apply'
+      inputs:
+        azureSubscription: 'Azure subscription 1 (b7a31e2a-65b9-4c9d-90df-6dc6a8301e24)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          set -euo pipefail
+
+          cd terraform
+
+          export ARM_USE_AZURECLI_AUTH=true
+
+          terraform init -input=false
+
+          BRANCH="$(Build.SourceBranch)"
+
+          case "${BRANCH}" in
+            refs/heads/dev)
+              WORKSPACE="dev"
+              ;;
+            refs/heads/test)
+              WORKSPACE="test"
+              ;;
+            refs/heads/main)
+              WORKSPACE="prod"
+              ;;
+            *)
+              echo "Unsupported branch: ${BRANCH}"
+              exit 1
+              ;;
+          esac
+
+          terraform workspace select "${WORKSPACE}"
+
+          echo "Current Workspace:"
+          terraform workspace show
+
+          # IMPORTANT: apply the exact plan produced in the previous stage
+          # tfplan artifact was produced by Terraform_Plan stage
+          terraform apply -auto-approve tfplan
+  displayName: 'Terraform Apply'
+  dependsOn: Terraform_Plan
+  condition: succeeded()
+
+  jobs:
+  - job: TerraformApply
+    displayName: 'Terraform Apply'
+
+    steps:
+
+    - checkout: self
+
+    - download: current
+      artifact: tfplan
+
+    - bash: |
         echo "===== PIPELINE WORKSPACE ====="
         find "$PIPELINE_WORKSPACE" -type f | sort
 
