@@ -47,5 +47,4 @@ terraform/*.tfstate
 terraform/*.tfstate.backup
 terraform/.terraform/
 terraform/crash.log
-terraform/*.tfvars
-
+*.md
