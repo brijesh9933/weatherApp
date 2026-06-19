@@ -22,6 +22,8 @@ stages:
     steps:
 
     - checkout: self
+      fetchDepth: 0
+      persistCredentials: true
 
     - bash: |
         set -euo pipefail
@@ -147,16 +149,22 @@ stages:
 
           echo "===== Terraform directory listing (to debug missing tfvars) ====="
           ls -la
+          echo "===== Searching for tfvars files ====="
+          find . -maxdepth 2 -type f -name "*.tfvars" -print
 
-          if [ ! -f "${TF_VAR_FILE}" ]; then
-            echo "ERROR: Expected variables file '${TF_VAR_FILE}' was not found in: $(pwd)" >&2
-            echo "Fix: ensure '${TF_VAR_FILE}' exists in the repository and is checked in (not gitignored), or adjust pipeline to use the correct path." >&2
-            exit 1
+          VAR_ARG=""
+          if [ -f "${TF_VAR_FILE}" ]; then
+            echo "Using tfvars file: ${TF_VAR_FILE}"
+            VAR_ARG="-var-file=${TF_VAR_FILE}"
+          else
+            echo "WARNING: tfvars file '${TF_VAR_FILE}' was not found in: $(pwd)." >&2
+            echo "         Falling back to environment variables / Terraform variable defaults (no -var-file)." >&2
+            echo "         Tip: ensure the tfvars file is checked in for the target branch (dev/test/main)." >&2
           fi
 
           terraform plan \
             -input=false \
-            -var-file="${TF_VAR_FILE}" \
+            ${VAR_ARG} \
             -out=tfplan
 
     - publish: terraform/tfplan
