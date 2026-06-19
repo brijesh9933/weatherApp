@@ -19,13 +19,15 @@ module "webapp" {
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
 
-  app_service_name = var.app_service_name
-  app_service_plan = var.app_service_plan
+  app_service_name       = var.app_service_name
+  app_service_plan       = var.app_service_plan
+  app_service_plan_sku_name = var.app_service_plan_sku_name
 
 
   acr_login_server = "https://${data.azurerm_container_registry.existing_acr.login_server}"
   acr_scope        = data.azurerm_container_registry.existing_acr.id
 }
+
 
 # Existing ACR where Azure DevOps pushes images
 data "azurerm_container_registry" "existing_acr" {

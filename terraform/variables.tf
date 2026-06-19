@@ -17,3 +17,8 @@ variable "app_service_name" {
 variable "app_service_plan" {
   type = string
 }
+
+variable "app_service_plan_sku_name" {
+  type = string
+}
+

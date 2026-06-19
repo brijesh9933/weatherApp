@@ -4,8 +4,9 @@ resource "azurerm_service_plan" "this" {
   location            = var.location
 
   os_type  = "Linux"
-  sku_name = "F1"
+  sku_name = var.app_service_plan_sku_name
 }
+
 
 resource "azurerm_linux_web_app" "this" {
   name                = var.app_service_name
