@@ -122,40 +122,46 @@ stages:
           cd terraform
 
           BRANCH="$(Build.SourceBranch)"
-
           echo "Current Branch: ${BRANCH}"
 
+          # Decide environment + var file based on branch
+          TF_ENV=""
+          TF_VAR_FILE=""
+
           if [ "${BRANCH}" = "refs/heads/dev" ]; then
-
+            TF_ENV="dev"
+            TF_VAR_FILE="dev.tfvars"
             terraform workspace select dev || terraform workspace new dev
-
-            terraform plan \
-              -input=false \
-              -var-file="dev.tfvars" \
-              -out=tfplan
-
           elif [ "${BRANCH}" = "refs/heads/test" ]; then
-
+            TF_ENV="test"
+            TF_VAR_FILE="test.tfvars"
             terraform workspace select test || terraform workspace new test
-
-            terraform plan \
-              -input=false \
-              -var-file="test.tfvars" \
-              -out=tfplan
-
           else
-
+            TF_ENV="prod"
+            TF_VAR_FILE="prod.tfvars"
             terraform workspace select prod || terraform workspace new prod
-
-            terraform plan \
-              -input=false \
-              -var-file="prod.tfvars" \
-              -out=tfplan
-
           fi
+
+          echo "Using Terraform env: ${TF_ENV}"
+          echo "Using var file: ${TF_VAR_FILE}"
+
+          echo "===== Terraform directory listing (to debug missing tfvars) ====="
+          ls -la
+
+          if [ ! -f "${TF_VAR_FILE}" ]; then
+            echo "ERROR: Expected variables file '${TF_VAR_FILE}' was not found in: $(pwd)" >&2
+            echo "Fix: ensure '${TF_VAR_FILE}' exists in the repository and is checked in (not gitignored), or adjust pipeline to use the correct path." >&2
+            exit 1
+          fi
+
+          terraform plan \
+            -input=false \
+            -var-file="${TF_VAR_FILE}" \
+            -out=tfplan
 
     - publish: terraform/tfplan
       artifact: tfplan
+
 
 - stage: Terraform_Apply
   displayName: 'Terraform Apply'
