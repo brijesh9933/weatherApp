@@ -63,7 +63,7 @@ stages:
           az group show --name "${BACKEND_RG}" >/dev/null 2>&1 || \
           az group create \
             --name "${BACKEND_RG}" \
-            --location "Central India" >/dev/null
+            --location "East US" >/dev/null
 
           az storage account show \
             --name "${BACKEND_STORAGE_ACCOUNT}" \
@@ -71,7 +71,7 @@ stages:
           az storage account create \
             --name "${BACKEND_STORAGE_ACCOUNT}" \
             --resource-group "${BACKEND_RG}" \
-            --location "Central India" \
+            --location "East US" \
             --sku Standard_LRS \
             --kind StorageV2 >/dev/null
 
