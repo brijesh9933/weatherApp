@@ -224,7 +224,7 @@ stages:
     displayName: Build (Production)
     dependsOn:
       - UnitTests
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranchName'], 'main')
     jobs:
       - job: BuildProd
         pool:
