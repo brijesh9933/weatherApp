@@ -255,12 +255,8 @@ stages:
       - Build_Dev
       - Build_Test
       - Build_Prod
-    # Build Docker image only if the relevant env build stage was selected and branch matches.
-    condition: or(
-      and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev')),
-      and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test')),
-      and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    )
+    # Docker image should build once whenever the selected env build stage ran.
+    condition: succeeded()
     jobs:
       - job: DockerBuildAndPushJob
         displayName: Docker buildAndPush
