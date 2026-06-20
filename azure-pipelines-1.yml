@@ -332,7 +332,7 @@ stages:
     displayName: Deploy prod
     dependsOn:
       - DockerBuildAndPush
-    condition: and(succeeded(), eq(${{ parameters.deployProd }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(eq(${{ parameters.deployProd }}, true), eq(variables['Build.SourceBranchName'], 'main'))
     jobs:
       - deployment: Deployprod
         environment: prod
