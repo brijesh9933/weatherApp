@@ -35,14 +35,6 @@ parameters:
 
 variables:
   - group: weather-secrets
-  # These must exist in the variable group (or be defined here) because they are used by DockerBuildAndPush.
-  # If your variable group uses different names, update these to match exactly.
-  - name: imageRepository
-    value: $(imageRepository)
-  - name: dockerRegistryServiceConnection
-    value: $(dockerRegistryServiceConnection)
-  - name: containerRegistry
-    value: $(containerRegistry)
   - name: vmImageName
     value: ubuntu-latest
   - name: dockerfilePath
@@ -255,9 +247,15 @@ stages:
               npm run build:prod
             displayName: Angular build (production)
 
+
+
+
+
+
+
+
   - stage: DockerBuildAndPush
     displayName: Build and push Docker image (single build)
-
     dependsOn:
       - Build_Dev
       - Build_Test
