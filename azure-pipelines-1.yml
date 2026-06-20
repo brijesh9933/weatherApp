@@ -31,15 +31,7 @@ parameters:
     type: boolean
     default: false
 
-  - name: buildDev
-    type: boolean
-    default: true
-  - name: buildTest
-    type: boolean
-    default: true
-  - name: buildProd
-    type: boolean
-    default: true
+
 
 variables:
   - group: weather-secrets
