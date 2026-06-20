@@ -226,7 +226,10 @@ stages:
     dependsOn:
       - Build_Dev
       - Build_Test
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: and(
+      eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+      eq(${{ parameters.deployProd }}, true)
+    )
     jobs:
       - job: BuildProd
         pool:
@@ -250,18 +253,20 @@ stages:
 
 
 
+
   - stage: DockerBuildAndPush
     displayName: Build and push Docker image (single build)
     dependsOn:
       - Build_Dev
       - Build_Test
       - Build_Prod
-    # Build Docker image only if the relevant env build stage was selected and branch matches.
-    condition: or(
-      and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev')),
-      and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test')),
-      and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    )
+    # Build Docker image only if a deploy target was selected and branch matches.
+    condition: and(succeeded(), or(
+      and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(${{ parameters.deployDev }}, true)),
+      and(eq(variables['Build.SourceBranch'], 'refs/heads/test'), eq(${{ parameters.deployTest }}, true)),
+      and(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(${{ parameters.deployProd }}, true))
+    ))
+
     jobs:
       - job: DockerBuildAndPushJob
         displayName: Docker buildAndPush
