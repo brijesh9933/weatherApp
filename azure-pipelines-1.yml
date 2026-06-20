@@ -131,8 +131,7 @@ stages:
   - stage: Build_Test
     displayName: Build (Test)
     dependsOn: UnitTests
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/test')
-
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
     jobs:
       - job: BuildTest
         pool:
