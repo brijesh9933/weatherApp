@@ -10,6 +10,37 @@ pr: none
 resources:
   - repo: self
 
+parameters:
+  - name: runLint
+    type: boolean
+    default: true
+  - name: runTests
+    type: boolean
+    default: true
+  - name: runSonar
+    type: boolean
+    default: false
+
+  - name: deployDev
+    type: boolean
+    default: false
+  - name: deployTest
+    type: boolean
+    default: false
+  - name: deployProd
+    type: boolean
+    default: false
+
+  - name: buildDev
+    type: boolean
+    default: true
+  - name: buildTest
+    type: boolean
+    default: true
+  - name: buildProd
+    type: boolean
+    default: true
+
 variables:
   - group: weather-secrets
   - name: vmImageName
@@ -33,6 +64,7 @@ variables:
 stages:
   - stage: Lint
     displayName: Lint
+    condition: eq(${{ parameters.runLint }}, true)
     jobs:
       - job: LintJob
         pool:
@@ -51,7 +83,7 @@ stages:
   - stage: UnitTests
     displayName: Unit tests
     dependsOn: Lint
-    condition: succeeded()
+    condition: and(succeeded(), eq(${{ parameters.runTests }}, true))
     jobs:
       - job: TestJob
         pool:
@@ -86,7 +118,7 @@ stages:
   - stage: Build_Dev
     displayName: Build (Dev)
     dependsOn: UnitTests
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    condition: and(succeeded(), eq(${{ parameters.buildDev }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
     jobs:
       - job: BuildDev
         pool:
@@ -107,7 +139,7 @@ stages:
   - stage: Build_Test
     displayName: Build (Test)
     dependsOn: UnitTests
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+    condition: and(succeeded(), eq(${{ parameters.buildTest }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
     jobs:
       - job: BuildTest
         pool:
@@ -129,7 +161,7 @@ stages:
     displayName: SonarCloud analysis (gate)
     dependsOn:
       - Lint
-    condition: succeeded()
+    condition: and(succeeded(), eq(${{ parameters.runSonar }}, true))
     jobs:
       - job: SonarCloud
         pool:
@@ -201,7 +233,7 @@ stages:
     dependsOn:
       - Build_Dev
       - Build_Test
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: and(succeeded(), eq(${{ parameters.buildProd }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: BuildProd
         pool:
@@ -219,16 +251,27 @@ stages:
               npm run build:prod
             displayName: Angular build (production)
 
-  - stage: DockerPush_DEV
-    displayName: Build and push Docker image (DEV)
-    dependsOn: Build_Dev
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+
+
+
+
+
+
+  - stage: DockerBuildAndPush
+    displayName: Build and push Docker image (single build)
+    dependsOn:
+      - Build_Dev
+      - Build_Test
+      - Build_Prod
+    # Only run if at least one build stage was selected AND succeeded.
+    condition: and(succeeded(), or(eq(${{ parameters.buildDev }}, true), eq(${{ parameters.buildTest }}, true), eq(${{ parameters.buildProd }}, true)))
     jobs:
-      - job: DockerPushDevJob
-        displayName: Docker buildAndPush (DEV)
+      - job: DockerBuildAndPushJob
+        displayName: Docker buildAndPush
         pool:
           vmImage: $(vmImageName)
         steps:
+          - checkout: self
           - task: Docker@2
             displayName: Build and push an image to container registry
             inputs:
@@ -239,73 +282,48 @@ stages:
               tags: |
                 $(imageTag)
                 dev
-
-  - stage: DockerPush_TEST
-    displayName: Build and push Docker image (TEST)
-    dependsOn: Build_Test
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/test')
-    jobs:
-      - job: DockerPushTestJob
-        displayName: Docker buildAndPush (TEST)
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: Docker@2
-            displayName: Build and push an image to container registry
-            inputs:
-              command: buildAndPush
-              repository: $(imageRepository)
-              dockerfile: $(dockerfilePath)
-              containerRegistry: $(dockerRegistryServiceConnection)
-              tags: |
-                $(imageTag)
                 test
-
-  - stage: DockerPush_PROD
-    displayName: Build and push Docker image (PROD)
-    dependsOn: Build_Prod
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-    jobs:
-      - job: DockerPushProdJob
-        displayName: Docker buildAndPush (PROD)
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: Docker@2
-            displayName: Build and push an image to container registry
-            inputs:
-              command: buildAndPush
-              repository: $(imageRepository)
-              dockerfile: $(dockerfilePath)
-              containerRegistry: $(dockerRegistryServiceConnection)
-              tags: |
-                $(imageTag)
                 latest
 
-  - template: templates/deploy-webapp.yml
-    parameters:
-      stageName: Deploy_DEV
-      environmentName: dev
-      appServiceName: $(devAppService)
-      dependsOn:
-        - DockerPush_DEV
-      branchCondition: 'refs/heads/dev'
+  - stage: Deploy_DEV
+    displayName: Deploy dev
+    dependsOn:
+      - DockerBuildAndPush
+    condition: and(succeeded(), eq(${{ parameters.deployDev }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    jobs:
+      - template: templates/deploy-webapp.yml
+        parameters:
+          stageName: Deploy_DEV
+          environmentName: dev
+          appServiceName: $(devAppService)
+          dependsOn: []
+          branchCondition: 'refs/heads/dev'
 
-  - template: templates/deploy-webapp.yml
-    parameters:
-      stageName: Deploy_TEST
-      environmentName: test
-      appServiceName: $(testAppService)
-      dependsOn:
-        - DockerPush_TEST
-      branchCondition: 'refs/heads/test'
+  - stage: Deploy_TEST
+    displayName: Deploy test
+    dependsOn:
+      - DockerBuildAndPush
+    condition: and(succeeded(), eq(${{ parameters.deployTest }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+    jobs:
+      - template: templates/deploy-webapp.yml
+        parameters:
+          stageName: Deploy_TEST
+          environmentName: test
+          appServiceName: $(testAppService)
+          dependsOn: []
+          branchCondition: 'refs/heads/test'
 
-  - template: templates/deploy-webapp.yml
-    parameters:
-      stageName: Deploy_PROD
-      environmentName: prod
-      appServiceName: $(prodAppService)
-      dependsOn:
-        - DockerPush_PROD
-      branchCondition: 'refs/heads/main'
+  - stage: Deploy_PROD
+    displayName: Deploy prod
+    dependsOn:
+      - DockerBuildAndPush
+    condition: and(succeeded(), eq(${{ parameters.deployProd }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - template: templates/deploy-webapp.yml
+        parameters:
+          stageName: Deploy_PROD
+          environmentName: prod
+          appServiceName: $(prodAppService)
+          dependsOn: []
+          branchCondition: 'refs/heads/main'
 
