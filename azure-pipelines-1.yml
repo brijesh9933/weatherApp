@@ -284,7 +284,7 @@ stages:
     displayName: Deploy dev
     dependsOn:
       - DockerBuildAndPush
-    condition: and(succeeded(), eq(${{ parameters.deployDev }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    condition: and(eq(${{ parameters.deployDev }}, true), eq(variables['Build.SourceBranchName'], 'dev'))
     jobs:
       - deployment: Deploydev
         environment: dev
@@ -308,7 +308,7 @@ stages:
     displayName: Deploy test
     dependsOn:
       - DockerBuildAndPush
-    condition: and(succeeded(), eq(${{ parameters.deployTest }}, true), eq(variables['Build.SourceBranch'], 'refs/heads/test'))
+    condition: and(eq(${{ parameters.deployTest }}, true), eq(variables['Build.SourceBranchName'], 'test'))
     jobs:
       - deployment: Deploytest
         environment: test
