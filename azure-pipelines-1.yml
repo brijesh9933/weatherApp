@@ -29,7 +29,7 @@ parameters:
     default: false
   - name: deployProd
     type: boolean
-    default: false
+    default: true
 
 
 
