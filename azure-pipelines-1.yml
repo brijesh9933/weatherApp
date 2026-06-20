@@ -223,8 +223,7 @@ stages:
   - stage: Build_Prod
     displayName: Build (Production)
     dependsOn:
-      - Build_Dev
-      - Build_Test
+      - UnitTests
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: BuildProd
@@ -255,8 +254,12 @@ stages:
       - Build_Dev
       - Build_Test
       - Build_Prod
-    # Docker image should build once whenever the selected env build stage ran.
-    condition: succeeded()
+    condition: |
+      or(
+        and(succeeded('Build_Dev'), eq(variables['Build.SourceBranch'], 'refs/heads/dev')),
+        and(succeeded('Build_Test'), eq(variables['Build.SourceBranch'], 'refs/heads/test')),
+        and(succeeded('Build_Prod'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      )
     jobs:
       - job: DockerBuildAndPushJob
         displayName: Docker buildAndPush
